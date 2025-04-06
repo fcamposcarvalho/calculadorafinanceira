@@ -96,14 +96,15 @@ A calculadora implementa as seguintes fórmulas financeiras:
 ```
 calculadorafinanceira/
 │
-├── index.html         # Arquivo principal contendo HTML, CSS e JavaScript
-├── screenshot.png     # Captura de tela da calculadora
-└── README.md          # Este arquivo
+├── index.html                    # Arquivo principal contendo HTML, CSS e JavaScript
+├── calculadora.css               # Arquivo de formatação css
+├── calculadora.js                # Arquivo javascript para execução, validação, mensagens, ...
+├── calculadorafinanceira.png     # Captura de tela da calculadora
+└── README.md                     # Este arquivo
 ```
 
 ## Melhorias Futuras
 
-- [ ] Separação de código em arquivos distintos (HTML, CSS, JS)
 - [ ] Adição de gráficos para visualização
 - [ ] Exportação dos resultados em PDF
 - [ ] Implementação de funções financeiras adicionais
