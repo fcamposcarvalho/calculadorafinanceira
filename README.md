@@ -46,8 +46,8 @@ Acesse a calculadora diretamente em: [https://fcamposcarvalho.github.io/calculad
 Para adicionar esta calculadora ao seu site:
 
 1. Copie o arquivo `index.html`
-2. Adapte os estilos conforme necessário
-3. Inclua em seu site como uma página completa ou em um iframe
+2. Copie o arquivo `calculadora.css`
+3. Copie o arquivo `calculadora.js`
 
 ## Guia de Uso
 
