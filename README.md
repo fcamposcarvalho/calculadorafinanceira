@@ -39,7 +39,7 @@ Uma calculadora de fluxo de caixa avançada para realizar cálculos financeiros 
 
 ### Uso Online
 
-Acesse a calculadora diretamente em: [https://seu-usuario.github.io/calculadorafinanceira](https://seu-usuario.github.io/calculadorafinanceira)
+Acesse a calculadora diretamente em: [https://fcamposcarvalho.github.io/calculadorafinanceira](https://fcamposcarvalho.github.io/calculadorafinanceira)
 
 ### Integração em Outros Sites
 
