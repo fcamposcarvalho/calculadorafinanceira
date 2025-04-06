@@ -2,7 +2,7 @@
 
 Uma calculadora de fluxo de caixa avançada para realizar cálculos financeiros como valor presente (PV), valor futuro (FV), prestações (PMT), taxas de juros e períodos.
 
-![Calculadora Financeira](https://github.com/seu-usuario/calculadorafinanceira/raw/main/calculadorafinanceira.png)
+![Calculadora Financeira](https://github.com/fcamposcarvalho/calculadorafinanceira/raw/main/calculadorafinanceira.png)
 
 ## Funcionalidades
 
