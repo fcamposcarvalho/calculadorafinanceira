@@ -274,3 +274,25 @@ footer {
         margin: 10% auto;
     }
 }
+/* Adicione isso ao arquivo calculadora.css */
+.interest-value-container {
+    margin-top: 15px;
+    display: none;
+}
+
+.interest-value-container.visible {
+    display: block;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.result-column {
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+}

@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearBtn = document.getElementById('clearBtn');
     const resultContainer = document.getElementById('resultContainer');
     const resultValue = document.getElementById('resultValue');
+    const interestValueElement = document.getElementById('interestValue'); // Novo elemento para o valor dos juros
     const errorMessage = document.getElementById('errorMessage');
     const togglePaymentBtn = document.getElementById('togglePayment');
     const togglePVBtn = document.getElementById('togglePV');
@@ -278,12 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'payment':
                 let pmt = parseFloat(paymentInput.value) || 0;
                 paymentInput.value = -pmt;
-                
-                // Quando se inverte o sinal da prestação, também inverte o FV
-                let fv = parseFloat(futureValueInput.value) || 0;
-                if (fv !== 0) {
-                    futureValueInput.value = -fv;
-                }
+                // Removida a condição que invertia automaticamente o FV
                 break;
                 
             case 'presentValue':
@@ -294,12 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'futureValue':
                 let futureVal = parseFloat(futureValueInput.value) || 0;
                 futureValueInput.value = -futureVal;
-                
-                // Também inverter o sinal da prestação
-                let payment = parseFloat(paymentInput.value) || 0;
-                if (payment !== 0) {
-                    paymentInput.value = -payment;
-                }
+                // Removida a condição que invertia automaticamente o PMT
                 break;
         }
         
@@ -330,27 +321,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Regra principal: PV e FV sempre têm o mesmo sinal, PMT tem o sinal oposto
+            // Regra principal: PV e FV sempre têm o mesmo sinal
             if (pv !== 0 && fv !== 0 && pmt !== 0) {
                 // Garantir que PV e FV tenham o mesmo sinal
                 if ((pv > 0 && fv < 0) || (pv < 0 && fv > 0)) {
                     futureValueInput.value = -fv;
                 }
                 
-                // Garantir que PMT tenha sinal oposto a PV e FV
-                if ((pmt > 0 && pv > 0) || (pmt < 0 && pv < 0)) {
-                    paymentInput.value = -pmt;
-                }
+                // Removida a condição que garantia que PMT tenha sinal oposto a PV e FV
             } else if (pv !== 0 && pmt !== 0) {
-                // Se FV é zero, ajustar PMT baseado em PV
-                if ((pmt > 0 && pv > 0) || (pmt < 0 && pv < 0)) {
-                    paymentInput.value = -pmt;
-                }
+                // Removida a condição que ajustava PMT baseado em PV
             } else if (fv !== 0 && pmt !== 0) {
-                // Se PV é zero, ajustar PMT baseado em FV
-                if ((pmt > 0 && fv > 0) || (pmt < 0 && fv < 0)) {
-                    paymentInput.value = -pmt;
-                }
+                // Removida a condição que ajustava PMT baseado em FV
             } else if (pv !== 0 && fv !== 0) {
                 // Se PMT é zero, garantir que PV e FV tenham o mesmo sinal
                 if ((pv > 0 && fv < 0) || (pv < 0 && fv > 0)) {
@@ -373,6 +355,11 @@ document.addEventListener('DOMContentLoaded', function() {
         futureValueInput.value = "0.00";
         resultContainer.classList.remove('visible');
         hideError();
+        
+        // Limpar também o valor dos juros se o elemento existir
+        if (interestValueElement) {
+            interestValueElement.textContent = '';
+        }
     }
     
     // Função para formatar moeda
@@ -396,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Função para adicionar ao histórico
-    function addToHistory(type, calculatedValue, originalValue, n, i, pmt, pv, fv) {
+    function addToHistory(type, calculatedValue, originalValue, n, i, pmt, pv, fv, interestAmount) {
         const record = {
             type: type,
             calculatedValue: calculatedValue,
@@ -406,6 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
             pmt: pmt,
             pv: pv,
             fv: fv,
+            interestAmount: interestAmount,
             date: new Date().toLocaleString()
         };
         
@@ -433,6 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="history-detail history-result">Resultado: ${formatCurrency(calc.calculatedValue)}</div>
                     <div class="history-detail">Períodos: ${calc.n}, Taxa: ${calc.i}%, PMT: ${formatCurrency(calc.pmt)}</div>
                     <div class="history-detail">PV: ${formatCurrency(calc.pv)}, FV: ${formatCurrency(calc.fv)}</div>
+                    <div class="history-detail">Valor dos Juros: ${formatCurrency(calc.interestAmount)}</div>
                 `;
                 
                 historyContent.appendChild(historyItem);
@@ -519,9 +508,33 @@ document.addEventListener('DOMContentLoaded', function() {
             // Mostrar resultado
             if (result !== null) {
                 resultValue.textContent = formatCurrency(result);
+                
+                // Calcular o valor dos juros
+                let interestAmount = 0;
+                
+                if (fieldToCalculate === 'futureValue') {
+                    // Se calculou FV, juros = FV - PV - (PMT * n)
+                    interestAmount = Math.abs(result) - Math.abs(pv) - Math.abs(pmt * n);
+                } else if (fieldToCalculate === 'presentValue') {
+                    // Se calculou PV, juros = FV - PV - (PMT * n)
+                    interestAmount = Math.abs(fv) - Math.abs(result) - Math.abs(pmt * n);
+                } else {
+                    // Para outros campos, calculamos usando os valores atualizados
+                    const updatedPv = parseFloat(presentValueInput.value) || 0;
+                    const updatedFv = parseFloat(futureValueInput.value) || 0;
+                    const updatedPmt = parseFloat(paymentInput.value) || 0;
+                    const updatedN = parseInt(periodsInput.value) || 0;
+                    interestAmount = Math.abs(updatedFv) - Math.abs(updatedPv) - Math.abs(updatedPmt * updatedN);
+                }
+                
+                // Exibir o valor dos juros
+                if (interestValueElement) {
+                    interestValueElement.textContent = formatCurrency(interestAmount);
+                }
+                
                 resultContainer.classList.add('visible');
                 
-                // Adicionar ao histórico
+                // Adicionar ao histórico (incluindo valor dos juros)
                 addToHistory(
                     fieldToCalculate,
                     result,
@@ -530,7 +543,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     fieldToCalculate === 'rate' ? result : parseFloat(rateInput.value),
                     fieldToCalculate === 'payment' ? result : pmt,
                     fieldToCalculate === 'presentValue' ? result : pv,
-                    fieldToCalculate === 'futureValue' ? result : fv
+                    fieldToCalculate === 'futureValue' ? result : fv,
+                    interestAmount
                 );
             }
             
