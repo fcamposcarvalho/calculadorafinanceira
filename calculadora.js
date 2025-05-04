@@ -201,11 +201,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 overflow-y: auto;
             }
             
-            .dropdown-item {
-                padding: 12px;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
+			.dropdown-item {
+				padding: 6px 12px;
+				cursor: pointer;
+				transition: background-color 0.2s;
+			}
             
             .dropdown-item:hover {
                 background-color: #f8f9fa;
