@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <h1>Calculadora de Fluxo de Caixa</h1>
-            <p>Calcule valores financeiros com base em taxas de juros e períodos</p>
+			<p>Calcule valores financeiros de fluxo de caixa, escolhendo a opção <span class="destacado">"Valor a Calcular:"</span></p>
         </header>
         
         <main>
@@ -24,7 +24,7 @@
                 
                 <div class="form-group">
                     <label for="rate">Taxa (i) %:</label>
-                    <input type="number" id="rate" step="0.01" value="1.0">
+                    <input type="number" id="rate" step="0.01" value="1.00">
                 </div>
                 
                 <div class="form-group">
@@ -75,7 +75,11 @@
 							<div class="result-value" id="resultValue"></div>
 						</div>
 						<div class="result-column">
-							<div class="result-title">Valor dos Juros:</div>
+							<div class="result-title">Valor Atual e Prestações:</div>
+							<div class="result-value" id="totalPayments"></div>
+						</div>
+						<div class="result-column">
+							<div class="result-title">Total dos Juros:</div>
 							<div class="result-value" id="interestValue"></div>
 						</div>
 					</div>
