@@ -322,3 +322,14 @@ footer {
     flex-basis: 30%;
     min-width: 150px;
 }
+
+/* Reduzir espaçamento nos itens do dropdown personalizado */
+.dropdown-item {
+    padding: 6px 12px !important; /* Reduzir de 12px para 6px */
+}
+
+/* Ajustar espaçamento vertical na lista do dropdown */
+.dropdown-list {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
