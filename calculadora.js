@@ -1,4 +1,39 @@
-// Configuração inicial
+// Função para calcular corretamente o total de juros
+    function calcularTotalJuros(n, i, pmt, pv) {
+        // O cálculo do total de juros deve ser consistente, independentemente dos sinais
+        
+        // Verificar se é um financiamento (PV>0, PMT<0) ou investimento (PV<0, PMT>0)
+        const isFinanciamento = (pv > 0 && pmt < 0) || (pv < 0 && pmt > 0);
+        
+        if (i === 0) {
+            // Com taxa zero, não há juros
+            return 0;
+        }
+        
+        // Total das prestações
+        const totalPrestacoes = Math.abs(pmt) * n;
+        
+        // Principal (valor do empréstimo/investimento)
+        const principal = Math.abs(pv);
+        
+        // Para calcular juros corretamente, vamos simular a amortização
+        let saldo = principal;
+        let totalJuros = 0;
+        
+        for (let periodo = 1; periodo <= n; periodo++) {
+            // Juros do período
+            const jurosPeriodo = saldo * i;
+            totalJuros += jurosPeriodo;
+            
+            // Amortização
+            const amortizacao = Math.abs(pmt) - jurosPeriodo;
+            
+            // Atualizar saldo
+            saldo -= amortizacao;
+        }
+        
+        return Math.abs(totalJuros);
+    }// Configuração inicial
 document.addEventListener('DOMContentLoaded', function() {
     // Elementos do DOM
     const periodsInput = document.getElementById('periods');
@@ -8,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const futureValueInput = document.getElementById('futureValue');
     const calculateFieldSelect = document.getElementById('calculateField');
     const calculateBtn = document.getElementById('calculateBtn');
+    const amortizationBtn = document.getElementById('amortizationBtn');
     const historyBtn = document.getElementById('historyBtn');
     const clearBtn = document.getElementById('clearBtn');
     const resultContainer = document.getElementById('resultContainer');
@@ -26,6 +62,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const historyModal = document.getElementById('historyModal');
     const closeModal = document.getElementById('closeModal');
     const historyContent = document.getElementById('historyContent');
+    
+    // Modal de amortização
+    const amortizationModal = document.getElementById('amortizationModal');
+    const closeAmortizationModal = document.getElementById('closeAmortizationModal');
+    const amortizationContent = document.getElementById('amortizationContent');
     
     // Histórico de cálculos
     let calculationHistory = [];
@@ -168,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 justify-content: space-between;
                 align-items: center;
                 padding: 12px;
-                border: 1px solid #dee2e6;
+                border: 1px asolid #dee2e6;
                 border-radius: 5px;
                 cursor: pointer;
                 background-color: white;
@@ -248,21 +289,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Evento para botão de cálculo
     calculateBtn.addEventListener('click', calculate);
     
+    // Evento para botão de amortização
+    amortizationBtn.addEventListener('click', showAmortizationTable);
+    
     // Evento para botão de histórico
     historyBtn.addEventListener('click', showHistory);
     
     // Evento para botão de limpar
     clearBtn.addEventListener('click', clearFields);
     
-    // Fechar modal
+    // Fechar modal de histórico
     closeModal.addEventListener('click', function() {
         historyModal.style.display = "none";
     });
     
-    // Fechar modal ao clicar fora
+    // Fechar modal de amortização
+    closeAmortizationModal.addEventListener('click', function() {
+        amortizationModal.style.display = "none";
+    });
+    
+    // Fechar modais ao clicar fora
     window.addEventListener('click', function(event) {
         if (event.target === historyModal) {
             historyModal.style.display = "none";
+        }
+        if (event.target === amortizationModal) {
+            amortizationModal.style.display = "none";
         }
     });
     
@@ -372,11 +424,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }).format(value);
     }
     
-    // Função para formatar taxa com 4 casas decimais
+    // Função para formatar taxa com 8 casas decimais
     function formatRate(value) {
         return new Intl.NumberFormat('pt-BR', {
-            minimumFractionDigits: 6,
-            maximumFractionDigits: 6
+            minimumFractionDigits: 8,
+            maximumFractionDigits: 8
         }).format(value);
     }
     
@@ -441,6 +493,192 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         historyModal.style.display = "block";
+    }
+    
+    // Função para mostrar a tabela de amortização
+    function showAmortizationTable() {
+        try {
+            hideError();
+            
+            // Obter valores dos inputs
+            const n = parseInt(periodsInput.value) || 0;
+            const i = (parseFloat(rateInput.value) || 0) / 100;  // Converter para decimal
+            const pmt = parseFloat(paymentInput.value) || 0;
+            const pv = parseFloat(presentValueInput.value) || 0;
+            const fv = parseFloat(futureValueInput.value) || 0;
+            
+            // Verificar se os valores são válidos para criar uma tabela de amortização
+            if (n <= 0) {
+                throw new Error("O número de períodos deve ser maior que zero para gerar uma tabela de amortização");
+            }
+            
+            if (i <= 0) {
+                throw new Error("A taxa deve ser maior que zero para gerar uma tabela de amortização");
+            }
+            
+            // Criar tabela de amortização
+            const amortizationData = calculateAmortizationTable(n, i, pmt, pv, fv);
+            
+            if (amortizationData.length === 0) {
+                amortizationContent.innerHTML = '<div class="empty-amortization">Não foi possível gerar a tabela de amortização com os valores informados.</div>';
+            } else {
+                // Calcular totais para o resumo
+                const totalPrincipal = amortizationData.reduce((sum, row) => sum + row.principalPayment, 0);
+                const totalInterest = amortizationData.reduce((sum, row) => sum + row.interestPayment, 0);
+                const totalPayment = amortizationData.reduce((sum, row) => sum + row.payment, 0);
+                
+                // Criar elemento de tabela
+                let tableHTML = `
+                    <div class="amortization-summary">
+                        <p>Total das Prestações: ${formatCurrency(totalPayment)}</p>
+                        <p>Total do Principal: ${formatCurrency(totalPrincipal)}</p>
+                        <p>Total de Juros: ${formatCurrency(totalInterest)}</p>
+                    </div>
+                    <table class="amortization-table">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Prestação</th>
+                                <th>Juros</th>
+                                <th>Juros Acumulados</th>
+                                <th>Principal</th>
+                                <th>Principal Acumulado</th>
+                                <th>Saldo Final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                // Adicionar linhas da tabela
+                amortizationData.forEach(row => {
+                    tableHTML += `
+                        <tr>
+                            <td>${row.period}</td>
+                            <td>${formatCurrency(row.payment)}</td>
+                            <td>${formatCurrency(row.interestPayment)}</td>
+                            <td>${formatCurrency(row.cumulativeInterest)}</td>
+                            <td>${formatCurrency(row.principalPayment)}</td>
+                            <td>${formatCurrency(row.cumulativePrincipal)}</td>
+                            <td>${formatCurrency(row.endingBalance)}</td>
+                        </tr>
+                    `;
+                });
+                
+                // Adicionar totais
+                tableHTML += `
+                        <tr>
+                            <td>Total</td>
+                            <td>${formatCurrency(totalPayment)}</td>
+                            <td>${formatCurrency(totalInterest)}</td>
+                            <td>-</td>
+                            <td>${formatCurrency(totalPrincipal)}</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                `;
+                
+                amortizationContent.innerHTML = tableHTML;
+            }
+            
+            // Mostrar o modal
+            amortizationModal.style.display = "block";
+            
+        } catch (error) {
+            console.error(error);
+            showError(error.message);
+        }
+    }
+    
+    // Função para calcular tabela de amortização
+    function calculateAmortizationTable(n, i, pmt, pv, fv) {
+        try {
+            // Se a prestação for zero, calculá-la
+            if (pmt === 0) {
+                pmt = calculatePayment(n, i, pv, fv);
+            }
+            
+            const table = [];
+            let balance = Math.abs(pv);  // Começar com o valor presente como saldo inicial
+            let cumulativeInterest = 0;  // Inicializar juros acumulados
+            let cumulativePrincipal = 0; // Inicializar principal acumulado
+            
+            // Determinar se é financiamento ou investimento
+            const isInvestment = pv < 0;
+            
+            // Para financiamento: pv > 0, pmt < 0
+            // Para investimento: pv < 0, pmt > 0
+            const pmtOriginal = pmt;
+            
+            // Garantir consistência nos sinais
+            if ((pv > 0 && pmt > 0) || (pv < 0 && pmt < 0)) {
+                pmt = -pmt;
+            }
+            
+            // Ajustar o sinal do saldo conforme tipo de operação
+            if (isInvestment) {
+                balance = -balance;
+            }
+            
+            for (let period = 1; period <= n; period++) {
+                // Calcular juros do período (sempre baseado no saldo atual)
+                const interestPayment = balance * i;
+                
+                // Acumular juros - usamos valor absoluto para consistência
+                cumulativeInterest += Math.abs(interestPayment);
+                
+                // Calcular parte do principal na prestação
+                let principalPayment = Math.abs(pmt) - Math.abs(interestPayment);
+                
+                // Manter o sinal correto da amortização
+                if (isInvestment) {
+                    principalPayment = Math.abs(principalPayment);
+                } else {
+                    principalPayment = Math.abs(principalPayment);
+                }
+                
+                // Acumular principal
+                cumulativePrincipal += principalPayment;
+                
+                // Calcular saldo final - sempre subtraindo a amortização do saldo
+                // (para investimento o saldo é negativo, então subtrai valor negativo = soma)
+                let endingBalance;
+                if (isInvestment) {
+                    endingBalance = balance + principalPayment;
+                } else {
+                    endingBalance = balance - principalPayment;
+                }
+                
+                // Para exibição na tabela, usamos valores absolutos para pagamento
+                const displayPayment = Math.abs(pmt);
+                
+                // Adicionar linha à tabela
+                table.push({
+                    period: period,
+                    payment: displayPayment,
+                    interestPayment: Math.abs(interestPayment),
+                    cumulativeInterest: cumulativeInterest,
+                    principalPayment: principalPayment,
+                    cumulativePrincipal: cumulativePrincipal,
+                    endingBalance: endingBalance
+                });
+                
+                // Atualizar saldo para o próximo período
+                balance = endingBalance;
+                
+                // Se o saldo atingiu zero ou o valor futuro desejado, podemos parar
+                if (Math.abs(balance - fv) < 0.00001) {
+                    break;
+                }
+            }
+            
+            return table;
+            
+        } catch (error) {
+            console.error("Erro ao calcular tabela de amortização:", error);
+            return [];
+        }
     }
     
     // Obter label para campo
@@ -513,7 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     originalValue = parseFloat(rateInput.value);
                     result = calculateRate(n, pmt, pv, fv);
                     if (result !== null) {
-                        rateInput.value = result.toFixed(6); // 4 casas decimais para taxa
+                        rateInput.value = result.toFixed(8); // 8 casas decimais para taxa
                     }
                     break;
                     
@@ -544,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Mostrar resultado
             if (result !== null) {
-                // Se o campo calculado for a taxa, usar formatação com 4 casas decimais
+                // Se o campo calculado for a taxa, usar formatação com 8 casas decimais
                 if (fieldToCalculate === 'rate') {
                     resultValue.textContent = formatRate(result);
                 } else {
@@ -563,22 +801,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Calcular o total de pagamentos
                 let totalPayments = 0;
                 
+                // Calcular o Total das Prestações
                 if (fieldToCalculate === 'futureValue') {
-					// Calcular o Valor Atual e Prestações (PMT * n)
-					totalPayments = pv + pmt * n;
-                    // Se calculou FV, juros = FV - PV - (PMT * n)
-                    interestAmount = Math.abs(result) - Math.abs(totalPayments);
-                 } else if (fieldToCalculate === 'presentValue') {
-					// Calcular o Valor Atual e Prestações (PMT * n)
-					totalPayments = result + pmt * n;
-                    // Se calculou PV, juros = FV - PV - (PMT * n)
-                    interestAmount = Math.abs(fv) - Math.abs(totalPayments);
-               } else {
-					// Calcular o Valor Atual e Prestações (PMT * n)
-					totalPayments = updatedPv + updatedPmt * updatedN;
-                    // Para outros campos, calculamos usando os valores atualizados
-                    interestAmount = Math.abs(updatedFv) - Math.abs(totalPayments);
-               }
+                    totalPayments = Math.abs(pmt * n);
+                    
+                    // Ao invés de uma fórmula simplificada, vamos calcular os juros corretamente
+                    // simulando o que acontece na tabela de amortização
+                    interestAmount = calcularTotalJuros(n, i, pmt, pv);
+                } else if (fieldToCalculate === 'presentValue') {
+                    totalPayments = Math.abs(pmt * n);
+                    
+                    // Calcular juros pela simulação de amortização
+                    interestAmount = calcularTotalJuros(n, i, pmt, result);
+                } else {
+                    totalPayments = Math.abs(updatedPmt * updatedN);
+                    
+                    // Calcular juros pela simulação de amortização
+                    interestAmount = calcularTotalJuros(updatedN, i, updatedPmt, updatedPv);
+                }
                 
                 // Exibir o valor dos juros
                 if (interestValueElement) {

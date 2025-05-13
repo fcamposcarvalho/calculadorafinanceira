@@ -62,12 +62,13 @@
                     </select>
                 </div>
                 
-                <div class="button-group">
-                    <button class="btn-primary" id="calculateBtn">Calcular</button>
-                    <button class="btn-secondary" id="historyBtn">Histórico</button>
-                    <button class="btn-secondary" id="clearBtn">Limpar</button>
-                </div>
-                
+				<div class="button-group">
+					<button class="btn-primary" id="calculateBtn">Calcular</button>
+					<button class="btn-secondary" id="amortizationBtn">Amortização</button>
+					<button class="btn-secondary" id="historyBtn">Histórico</button>
+					<button class="btn-secondary" id="clearBtn">Limpar</button>
+				</div>
+
 				<div class="result-container" id="resultContainer">
 					<div class="result-row">
 						<div class="result-column">
@@ -75,7 +76,7 @@
 							<div class="result-value" id="resultValue"></div>
 						</div>
 						<div class="result-column">
-							<div class="result-title">Valor Atual e Prestações:</div>
+							<div class="result-title">Total das Prestações:</div>
 							<div class="result-value" id="totalPayments"></div>
 						</div>
 						<div class="result-column">
@@ -96,7 +97,16 @@
             </div>
         </div>
         
-        <footer>
+		<!-- Adicionar modal para a tabela de amortização após o modal de histórico -->
+		<div id="amortizationModal" class="modal">
+			<div class="modal-content">
+				<span class="close" id="closeAmortizationModal">&times;</span>
+				<h2>Tabela de Amortização</h2>
+				<div id="amortizationContent"></div>
+			</div>
+		</div>
+
+       <footer>
             <p>&copy; 2025 Calculadora de Fluxo de Caixa. Todos os direitos reservados.</p>
             <p>Criado por Francisco Campos de Carvalho, ZAP 11 97999-7475, bacharel em matemática e pós em sistemas de informação.</p>
         </footer>
