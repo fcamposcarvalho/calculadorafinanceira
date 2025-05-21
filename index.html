@@ -20,7 +20,7 @@
                 <div class="form-group">
                     <label for="periods">Períodos (n):</label>
                     <div class="input-group">
-                        <input type="number" id="periods" min="0" value="12">
+                        <input type="number" id="periods" min="0" value="12" title="Pressione Enter ou F1 para acessar a calculadora">
                         <button class="btn-toggle" id="multiplyPeriods">12×</button>
                     </div>
                 </div>
@@ -28,7 +28,7 @@
                 <div class="form-group">
                     <label for="rate">Taxa (i) %:</label>
                     <div class="input-group">
-                        <input type="number" id="rate" step="0.01" value="1.00">
+                        <input type="number" id="rate" step="0.01" value="1.00" title="Pressione Enter ou F1 para acessar a calculadora">
                         <button class="btn-toggle" id="divideRate">12÷</button>
                     </div>
                 </div>
@@ -36,7 +36,7 @@
                 <div class="form-group">
                     <label for="payment">Prestação (PMT):</label>
                     <div class="input-group">
-                        <input type="number" id="payment" value="0.00" step="0.01">
+                        <input type="number" id="payment" value="0.00" step="0.01" title="Pressione Enter ou F1 para acessar a calculadora">
                         <button class="btn-toggle" id="togglePayment">+/-</button>
                     </div>
                 </div>
@@ -44,7 +44,7 @@
                 <div class="form-group">
                     <label for="presentValue">Valor Atual (PV):</label>
                     <div class="input-group">
-                        <input type="number" id="presentValue" value="1000.00" step="0.01">
+                        <input type="number" id="presentValue" value="1000.00" step="0.01" title="Pressione Enter ou F1 para acessar a calculadora">
                         <button class="btn-toggle" id="togglePV">+/-</button>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
                 <div class="form-group">
                     <label for="futureValue">Valor Futuro (FV):</label>
                     <div class="input-group">
-                        <input type="number" id="futureValue" value="0.00" step="0.01">
+                        <input type="number" id="futureValue" value="0.00" step="0.01" title="Pressione Enter ou F1 para acessar a calculadora">
                         <button class="btn-toggle" id="toggleFV">+/-</button>
                     </div>
                 </div>
@@ -71,6 +71,7 @@
 				<div class="button-group">
 					<button class="btn-primary" id="calculateBtn">Calcular</button>
 					<button class="btn-secondary" id="amortizationBtn">Amortização</button>
+                    <button class="btn-secondary" id="calculatorBtn">Calculadora</button>
 					<button class="btn-secondary" id="historyBtn">Histórico</button>
 					<button class="btn-secondary" id="clearBtn">Limpar</button>
 				</div>
@@ -103,7 +104,7 @@
             </div>
         </div>
         
-		<!-- Adicionar modal para a tabela de amortização após o modal de histórico -->
+		<!-- Modal para a tabela de amortização -->
 		<div id="amortizationModal" class="modal">
 			<div class="modal-content">
 				<span class="close" id="closeAmortizationModal">&times;</span>
@@ -112,12 +113,82 @@
 			</div>
 		</div>
 
-       <footer>
+        <!-- Modal para a calculadora básica -->
+        <div id="calculatorModal" class="modal">
+            <div class="modal-content calculator-modal">
+                <span class="close" id="closeCalculatorModal">&times;</span>
+                <div id="calculatorContent">
+                    <div class="basic-calculator">
+                        <div class="calc-display">
+                            <input type="text" id="calcDisplay" readonly>
+                        </div>
+                        <div class="calc-buttons">
+                            <!-- Primeira linha: C, Backspace, CE, igual -->
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-clear" data-action="clear">C</button>
+                                <button class="calc-btn calc-btn-op" data-action="backspace">⌫</button>
+                                <button class="calc-btn calc-btn-op" data-action="clearEntry">CE</button>
+                                <button class="calc-btn calc-btn-equal" data-action="equals">=</button>
+                            </div>
+                            <!-- Segunda linha: parênteses, %, dividir -->
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-op" data-action="openParenthesis">(</button>
+                                <button class="calc-btn calc-btn-op" data-action="closeParenthesis">)</button>
+                                <button class="calc-btn calc-btn-op" data-action="percent">%</button>
+                                <button class="calc-btn calc-btn-op" data-action="divide">÷</button>
+                            </div>
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-num">7</button>
+                                <button class="calc-btn calc-btn-num">8</button>
+                                <button class="calc-btn calc-btn-num">9</button>
+                                <button class="calc-btn calc-btn-op" data-action="multiply">×</button>
+                            </div>
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-num">4</button>
+                                <button class="calc-btn calc-btn-num">5</button>
+                                <button class="calc-btn calc-btn-num">6</button>
+                                <button class="calc-btn calc-btn-op" data-action="subtract">−</button>
+                            </div>
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-num">1</button>
+                                <button class="calc-btn calc-btn-num">2</button>
+                                <button class="calc-btn calc-btn-num">3</button>
+                                <button class="calc-btn calc-btn-op" data-action="add">+</button>
+                            </div>
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-num">0</button>
+                                <button class="calc-btn calc-btn-num" data-action="decimal">.</button>
+                                <button class="calc-btn calc-btn-op" data-action="inverse">1/x</button>
+                                <button class="calc-btn calc-btn-op" data-action="negate">±</button>
+                            </div>
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-op" data-action="sqrt">√</button>
+                                <button class="calc-btn calc-btn-op" data-action="power">x^y</button>
+                                <button class="calc-btn calc-btn-op" data-action="log">log</button>
+                                <button class="calc-btn calc-btn-op" data-action="ln">ln</button>
+                            </div>
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-const" data-action="pi">π</button>
+                                <button class="calc-btn calc-btn-const" data-action="euler">e</button>
+                                <button class="calc-btn calc-btn-const" data-action="phi">φ</button>
+                                <button class="calc-btn calc-btn-op" data-action="exp">e^x</button>
+                            </div>
+                            <div class="calc-row">
+                                <button class="calc-btn calc-btn-apply" data-action="apply">Aplicar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
             <p>&copy; 2025 Calculadora de Fluxo de Caixa. Todos os direitos reservados.</p>
             <p>Criado por Francisco Campos de Carvalho, ZAP 11 97999-7475, bacharel em matemática e pós em sistemas de informação.</p>
         </footer>
     </div>
     
+    <script src="calculadora_financeira.js"></script>
     <script src="calculadora.js"></script>
 </body>
 </html>
