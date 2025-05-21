@@ -1,39 +1,41 @@
 // Função para calcular corretamente o total de juros
-    function calcularTotalJuros(n, i, pmt, pv) {
-        // O cálculo do total de juros deve ser consistente, independentemente dos sinais
+function calcularTotalJuros(n, i, pmt, pv) {
+    // O cálculo do total de juros deve ser consistente, independentemente dos sinais
+    
+    // Verificar se é um financiamento (PV>0, PMT<0) ou investimento (PV<0, PMT>0)
+    const isFinanciamento = (pv > 0 && pmt < 0) || (pv < 0 && pmt > 0);
+    
+    if (i === 0) {
+        // Com taxa zero, não há juros
+        return 0;
+    }
+    
+    // Total das prestações
+    const totalPrestacoes = Math.abs(pmt) * n;
+    
+    // Principal (valor do empréstimo/investimento)
+    const principal = Math.abs(pv);
+    
+    // Para calcular juros corretamente, vamos simular a amortização
+    let saldo = principal;
+    let totalJuros = 0;
+    
+    for (let periodo = 1; periodo <= n; periodo++) {
+        // Juros do período
+        const jurosPeriodo = saldo * i;
+        totalJuros += jurosPeriodo;
         
-        // Verificar se é um financiamento (PV>0, PMT<0) ou investimento (PV<0, PMT>0)
-        const isFinanciamento = (pv > 0 && pmt < 0) || (pv < 0 && pmt > 0);
+        // Amortização
+        const amortizacao = Math.abs(pmt) - jurosPeriodo;
         
-        if (i === 0) {
-            // Com taxa zero, não há juros
-            return 0;
-        }
-        
-        // Total das prestações
-        const totalPrestacoes = Math.abs(pmt) * n;
-        
-        // Principal (valor do empréstimo/investimento)
-        const principal = Math.abs(pv);
-        
-        // Para calcular juros corretamente, vamos simular a amortização
-        let saldo = principal;
-        let totalJuros = 0;
-        
-        for (let periodo = 1; periodo <= n; periodo++) {
-            // Juros do período
-            const jurosPeriodo = saldo * i;
-            totalJuros += jurosPeriodo;
-            
-            // Amortização
-            const amortizacao = Math.abs(pmt) - jurosPeriodo;
-            
-            // Atualizar saldo
-            saldo -= amortizacao;
-        }
-        
-        return Math.abs(totalJuros);
-    }// Configuração inicial
+        // Atualizar saldo
+        saldo -= amortizacao;
+    }
+    
+    return Math.abs(totalJuros);
+}
+
+// Configuração inicial
 document.addEventListener('DOMContentLoaded', function() {
     // Elementos do DOM
     const periodsInput = document.getElementById('periods');
@@ -54,6 +56,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePaymentBtn = document.getElementById('togglePayment');
     const togglePVBtn = document.getElementById('togglePV');
     const toggleFVBtn = document.getElementById('toggleFV');
+    
+    // Novos elementos para os botões de períodos e taxa
+    const multiplyPeriodsBtn = document.getElementById('multiplyPeriods');
+    const divideRateBtn = document.getElementById('divideRate');
     
     // Criar um dropdown personalizado em substituição ao dropdown nativo
     createCustomDropdown();
@@ -209,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 justify-content: space-between;
                 align-items: center;
                 padding: 12px;
-                border: 1px asolid #dee2e6;
+                border: 1px solid #dee2e6;
                 border-radius: 5px;
                 cursor: pointer;
                 background-color: white;
@@ -242,11 +248,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 overflow-y: auto;
             }
             
-			.dropdown-item {
-				padding: 6px 12px;
-				cursor: pointer;
-				transition: background-color 0.2s;
-			}
+            .dropdown-item {
+                padding: 6px 12px;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
             
             .dropdown-item:hover {
                 background-color: #f8f9fa;
@@ -284,6 +290,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     toggleFVBtn.addEventListener('click', function() {
         invertSign('futureValue');
+    });
+    
+    // Evento para os novos botões de períodos e taxa
+    multiplyPeriodsBtn.addEventListener('click', function() {
+        multiplyPeriods();
+    });
+    
+    divideRateBtn.addEventListener('click', function() {
+        divideRate();
     });
     
     // Evento para botão de cálculo
@@ -324,6 +339,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // MODIFICAÇÃO: Remover o ajuste automático de sinais para o Valor Futuro
     // futureValueInput.addEventListener('input', adjustSignals);
+    
+    // Função para multiplicar períodos por 12 (anualizar)
+    function multiplyPeriods() {
+        try {
+            const periodValue = parseInt(periodsInput.value) || 0;
+            const newPeriodValue = periodValue * 12;
+            periodsInput.value = newPeriodValue;
+            console.log("Períodos multiplicados por 12:", newPeriodValue);
+        } catch (error) {
+            console.error("Erro ao multiplicar períodos:", error);
+            showError("Erro ao multiplicar períodos: " + error.message);
+        }
+    }
+    
+    // Função para dividir taxa por 12 (mensalizar)
+    function divideRate() {
+        try {
+            const rateValue = parseFloat(rateInput.value) || 0;
+            const newRateValue = rateValue / 12;
+            // Formatar com até 8 casas decimais para maior precisão
+            rateInput.value = newRateValue.toFixed(8);
+            console.log("Taxa dividida por 12:", newRateValue);
+        } catch (error) {
+            console.error("Erro ao dividir taxa:", error);
+            showError("Erro ao dividir taxa: " + error.message);
+        }
+    }
     
     // Função para inverter o sinal
     function invertSign(field) {
@@ -789,7 +831,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultValue.textContent = formatCurrency(result);
                 }
                 
-                // Obter valores atualizados após o cálculo
                 // Obter valores atualizados após o cálculo
                 const updatedPmt = parseFloat(paymentInput.value) || 0;
                 const updatedN = parseInt(periodsInput.value) || 0;
