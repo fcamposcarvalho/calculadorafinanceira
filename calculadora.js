@@ -7,6 +7,95 @@ document.addEventListener('DOMContentLoaded', function() {
     const calcDisplay = document.getElementById('calcDisplay');
     const calcButtons = document.querySelectorAll('.calc-btn');
     
+    // --- INÍCIO DA LÓGICA DE ARRASTE DO MODAL DA CALCULADORA ---
+    const calculatorModalContentEl = calculatorModal.querySelector('.modal-content.calculator-modal');
+
+    if (calculatorModal && calculatorModalContentEl && closeCalculatorModal) {
+        let isDragging = false;
+        let dragOffsetX, dragOffsetY;
+
+        // Função para resetar a posição do modal para o centro
+        window.resetCalculatorModalPosition = function() {
+            if (calculatorModalContentEl) {
+                calculatorModalContentEl.style.position = ''; // Reverte para a posição definida pelo CSS
+                calculatorModalContentEl.style.left = '';
+                calculatorModalContentEl.style.top = '';
+                calculatorModalContentEl.style.margin = ''; // Permite que 'margin: 5% auto;' funcione novamente
+                calculatorModalContentEl.style.cursor = 'grab'; // Define o cursor inicial
+            }
+        }
+
+        if (calculatorModalContentEl) {
+            calculatorModalContentEl.style.cursor = 'grab'; // Define o cursor inicial
+
+            calculatorModalContentEl.addEventListener('mousedown', function(e) {
+                // Prevenir o arraste se o clique for em um botão, input, no botão de fechar ou nos botões da calculadora
+                const targetTagName = e.target.tagName.toLowerCase();
+                const isInteractiveElement = 
+                    targetTagName === 'button' ||
+                    targetTagName === 'input' ||
+                    e.target === closeCalculatorModal || // Verifica se é o botão de fechar
+                    e.target.closest('.calc-buttons'); // Verifica se o clique foi dentro da área dos botões
+
+                if (isInteractiveElement) {
+                    return; // Não iniciar o arraste
+                }
+
+                isDragging = true;
+                
+                // Se for o primeiro arraste, converter o posicionamento baseado em margem para absoluto
+                if (calculatorModalContentEl.style.position !== 'absolute') {
+                    const rect = calculatorModalContentEl.getBoundingClientRect();
+                    calculatorModalContentEl.style.position = 'absolute';
+                    calculatorModalContentEl.style.left = rect.left + 'px';
+                    calculatorModalContentEl.style.top = rect.top + 'px';
+                    calculatorModalContentEl.style.margin = '0'; // Remover margens automáticas
+                }
+
+                dragOffsetX = e.clientX - calculatorModalContentEl.offsetLeft;
+                dragOffsetY = e.clientY - calculatorModalContentEl.offsetTop;
+
+                calculatorModalContentEl.style.cursor = 'grabbing'; // Mudar cursor durante o arraste
+                document.body.style.userSelect = 'none'; // Prevenir seleção de texto durante o arraste
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        }
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            e.preventDefault(); // Prevenir comportamento padrão (como seleção de texto)
+
+            let newLeft = e.clientX - dragOffsetX;
+            let newTop = e.clientY - dragOffsetY;
+
+            // Limites para manter o modal dentro da tela (viewport)
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const modalWidth = calculatorModalContentEl.offsetWidth;
+            const modalHeight = calculatorModalContentEl.offsetHeight;
+
+            newLeft = Math.max(0, Math.min(newLeft, viewportWidth - modalWidth));
+            newTop = Math.max(0, Math.min(newTop, viewportHeight - modalHeight));
+
+            calculatorModalContentEl.style.left = newLeft + 'px';
+            calculatorModalContentEl.style.top = newTop + 'px';
+        }
+
+        function onMouseUp() {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            calculatorModalContentEl.style.cursor = 'grab'; // Restaurar cursor
+            document.body.style.userSelect = ''; // Permitir seleção de texto novamente
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    }
+    // --- FIM DA LÓGICA DE ARRASTE DO MODAL DA CALCULADORA ---
+
     // Variáveis para controle da calculadora
     let currentInput = '0'; // O que é mostrado no display
     let previousInput = ''; // Valor anterior (para operações simples)
@@ -16,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Variáveis para expressões
     let expressionMode = false; // Indica se estamos no modo de expressão (com parênteses)
-    let pendingOperation = ''; // Armazena uma operação pendente
+    // let pendingOperation = ''; // Removido - não estava sendo usado consistentemente
     
     // Constantes matemáticas
     const MATH_CONSTANTS = {
@@ -56,15 +145,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupNumericInputs() {
         const numericInputs = document.querySelectorAll('input[type="number"]');
         numericInputs.forEach(input => {
-            // Adicionar evento de tecla para Enter e F1
             input.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter' || event.key === 'F1') {
-                    event.preventDefault(); // Impedir comportamento padrão (tecla F1 aparecer no display)
-                    event.stopPropagation(); // Impedir propagação do evento
+                    event.preventDefault(); 
+                    event.stopPropagation(); 
                     activeInputField = this;
                     openCalculator();
                     
-                    // Preencher calculadora com o valor atual do campo
                     if (this.value) {
                         currentInput = this.value;
                         updateDisplay();
@@ -72,12 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Adicionar tooltip personalizado
             if (!input.title) {
                 input.title = "Pressione Enter ou F1 para acessar a calculadora";
             }
             
-            // Adicionar destaque ao focar
             input.addEventListener('focus', function() {
                 this.classList.add('highlighted');
             });
@@ -95,30 +180,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const buttonValue = button.textContent;
             
             if (!action) {
-                // Botões numéricos
                 inputDigit(buttonValue);
             } else {
-                // Botões de ação
                 switch(action) {
                     case 'add':
                     case 'subtract':
                     case 'multiply':
                     case 'divide':
                     case 'power':
-                        // Se estamos no modo de expressão, adicionamos o operador diretamente
-                        if (expressionMode) {
-                            let operatorChar;
-                            switch (action) {
-                                case 'add': operatorChar = '+'; break;
-                                case 'subtract': operatorChar = '-'; break;
-                                case 'multiply': operatorChar = '×'; break;
-                                case 'divide': operatorChar = '÷'; break;
-                                case 'power': operatorChar = '^'; break;
-                            }
-                            currentInput += operatorChar;
-                        } else {
-                            handleOperator(action);
-                        }
+                        handleOperator(action);
                         break;
                     case 'openParenthesis':
                         inputParenthesis('(');
@@ -176,47 +246,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Adicionar suporte a teclado quando a calculadora está aberta
     document.addEventListener('keydown', function(event) {
         if (calculatorModal.style.display === 'block') {
             handleKeyboardInput(event);
         }
     });
     
-    // Função para abrir a calculadora
     function openCalculator() {
+        if (typeof window.resetCalculatorModalPosition === 'function') {
+            window.resetCalculatorModalPosition();
+        }
         calculatorModal.style.display = "block";
-        // Focar no campo de exibição
         calcDisplay.focus();
     }
     
-    // Função para atualizar o display
     function updateDisplay() {
-        // Substituir pontos por vírgulas para exibição (padrão brasileiro)
         calcDisplay.value = currentInput.replace(/\./g, ',');
     }
     
-    // Função para inserir dígitos
     function inputDigit(digit) {
         if (resetScreen) {
-            // Se acabamos de pressionar um operador, precisamos preservar a expressão
-            // Primeiro, verifique se o último caractere é um operador
             const lastChar = currentInput.charAt(currentInput.length - 1);
-            if ('+-×÷^'.includes(lastChar)) {
-                currentInput = currentInput + digit;
+            // Se resetScreen é true e currentInput termina com operador/parêntese, anexa o dígito.
+            // Caso contrário (resetScreen é true, mas não após operador, ex: após resultado de cálculo ou constante),
+            // o currentInput é substituído pelo dígito.
+            if ('+-×÷^('.includes(lastChar)) {
+                currentInput += digit;
             } else {
                 currentInput = digit;
             }
             resetScreen = false;
         } else {
-            // Se o valor atual for 0, substituir; caso contrário, anexar
             currentInput = currentInput === '0' ? digit : currentInput + digit;
         }
     }
     
-    // Função para inserir parênteses
     function inputParenthesis(parenthesis) {
-        // CORREÇÃO: Se temos um operador pendente, adicioná-lo antes do parêntese
         if (calculationOperator && resetScreen) {
             let operatorChar;
             switch (calculationOperator) {
@@ -226,123 +291,123 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'divide': operatorChar = '÷'; break;
                 case 'power': operatorChar = '^'; break;
             }
-            
-            // Adicionar o operador pendente e o valor anterior
             if (previousInput) {
                 currentInput = previousInput + operatorChar;
             }
-            
-            // Redefinir os flags de operação para evitar duplicação
             resetScreen = false;
             calculationOperator = '';
         }
         
-        // Entrar automaticamente no modo de expressão ao usar parênteses
         expressionMode = true;
         
-        // Se estamos começando e o display só tem 0, substituir o 0
         if (currentInput === '0' && parenthesis === '(') {
             currentInput = parenthesis;
         } else {
-            currentInput += parenthesis;
+            // Se o último caractere é um dígito ou ')' e vamos abrir um '(', insere '*'
+            const lastChar = currentInput.charAt(currentInput.length - 1);
+            if (parenthesis === '(' && (/\d$/.test(lastChar) || lastChar === ')')) {
+                currentInput += '×' + parenthesis;
+            } else {
+                currentInput += parenthesis;
+            }
         }
     }
     
-    // Função para inserir constantes matemáticas
     function inputConstant(constant) {
         const value = MATH_CONSTANTS[constant].toString();
-        
-        // Se estamos no modo de expressão, simplesmente adicionamos o valor
-        if (expressionMode) {
-            currentInput += value;
-        } else {
-            // Caso contrário, substituímos o valor atual
-            currentInput = value;
-            resetScreen = true;
-        }
-    }
-    
-    // Função para inserir ponto decimal
-    function inputDecimal() {
-        // Usamos o ponto internamente, mas exibimos como vírgula
-        
-        // Se o último caractere já for um ponto, não fazer nada
-        if (currentInput.endsWith('.')) {
-            return;
-        }
-        
-        // Se estamos resetando o display, começar com "0."
-        if (resetScreen) {
-            currentInput = '0.';
-            resetScreen = false;
-            return;
-        }
-        
-        // NOVO: Verificar se precisamos adicionar um 0 antes da vírgula
-        // Caso 1: Se o display estiver vazio ou for apenas 0
-        if (currentInput === '' || currentInput === '0') {
-            currentInput = '0.';
-            return;
-        }
-        
-        // Caso 2: Se o último caractere for um operador ou parêntese
         const lastChar = currentInput.charAt(currentInput.length - 1);
-        if ('+-×÷^('.includes(lastChar)) {
-            currentInput += '0.';
+
+        if (expressionMode) {
+             // Se o último caractere é um dígito ou ')' ou outra constante, insere '*' antes da nova constante
+            if (/\d$/.test(lastChar) || lastChar === ')' || Object.values(MATH_CONSTANTS).map(v => v.toString()).includes(currentInput.match(/[^+\-×÷^()]*$/)?.[0])) {
+                 currentInput += '×' + value;
+            } else if ('+-×÷^('.includes(lastChar) || currentInput === '0') {
+                 currentInput = (currentInput === '0' ? '' : currentInput) + value;
+            }
+            else {
+                 currentInput += value;
+            }
+        } else {
+            currentInput = value;
+        }
+        resetScreen = true; // Para a próxima entrada de dígito/operador
+    }
+    
+    function inputDecimal() {
+        // Pega a parte da string após o último operador ou parêntese.
+        // Se não houver operadores/parênteses, pega a string inteira.
+        const match = currentInput.match(/[^+\-×÷^()]*$/);
+        const lastNumberSegment = match ? match[0] : "";
+
+        // Se o último segmento numérico já contém um ponto, não faz nada.
+        if (lastNumberSegment.includes('.')) {
             return;
         }
-        
-        // Caso 3: Se não encontrarmos nenhum dígito após o último operador
-        // Para lidar com casos como "0,2+"
-        const parts = currentInput.split(/[+\-×÷^(]/);
-        const lastPart = parts[parts.length - 1];
-        
-        if (lastPart === '') {
-            currentInput += '0.';
-            return;
-        }
-        
-        // Caso normal: Analisamos a última parte numérica da entrada
-        if (!lastPart.includes('.')) {
-            currentInput += '.';
+
+        if (resetScreen) {
+            const lastChar = currentInput.charAt(currentInput.length - 1);
+            // Se resetScreen é true E currentInput termina com um operador ou '(',
+            // anexamos "0." para iniciar um novo número.
+            if ('+-×÷^('.includes(lastChar)) {
+                currentInput += '0.';
+            } else {
+                // Se resetScreen é true mas não após um operador (ex: após um cálculo finalizado ou constante),
+                // o currentInput se torna "0."
+                currentInput = '0.';
+            }
+            resetScreen = false; // resetScreen foi consumido
+        } else {
+            // currentInput é "0" ou vazio, novo input é "0."
+            if (currentInput === '0' || currentInput === '') {
+                currentInput = '0.';
+            // Último caractere é um operador ou '(', anexamos "0."
+            } else if ('+-×÷^('.includes(currentInput.charAt(currentInput.length - 1))) {
+                currentInput += '0.';
+            // Caso contrário, adicionamos o ponto ao número atual.
+            } else {
+                currentInput += '.';
+            }
         }
     }
     
-    // Função para negar valor
     function negateValue() {
-        // Se estamos no modo de expressão, adicionamos um -1 * (...)
         if (expressionMode) {
-            // Encontrar a última entrada numérica
-            const match = currentInput.match(/[0-9.]+$/);
+            const match = currentInput.match(/([+\-×÷^])?([0-9.]+)$/); // Tenta capturar um operador opcional antes do último número
             if (match) {
-                // Substituir o último número por sua versão negada
-                const lastNumber = match[0];
-                const position = currentInput.lastIndexOf(lastNumber);
-                
-                // Se o número já for negativo (precedido por um sinal de menos)
-                if (position > 0 && currentInput[position-1] === '-') {
-                    // Remover o sinal de menos anterior
-                    currentInput = currentInput.substring(0, position-1) + currentInput.substring(position);
-                } else {
-                    // Caso contrário, adicionar um sinal de menos
-                    currentInput = currentInput.substring(0, position) + '-' + currentInput.substring(position);
+                const operator = match[1];
+                const lastNumber = match[2];
+                const numberStartIndex = currentInput.lastIndexOf(lastNumber);
+                const prefix = currentInput.substring(0, numberStartIndex);
+
+                if (operator === '-') { // Se o número já é explicitamente negativo com operador (ex: ...+-5)
+                    currentInput = prefix.slice(0,-1) + '+' + lastNumber; // Troca - por +
+                } else if (operator === '+') { // Se o número é precedido por + (ex: ...++5 ou ...+5)
+                     currentInput = prefix.slice(0,-1) + '-' + lastNumber; // Troca + por -
+                } else if (numberStartIndex > 0 && currentInput[numberStartIndex-1] === '-') { // Número negativo sem operador antes (ex: 5-2 -> 5-(-2))
+                     currentInput = currentInput.substring(0, numberStartIndex-1) + '+' + lastNumber;
                 }
+                else { // Número positivo
+                    currentInput = prefix + '-' + lastNumber;
+                }
+            } else if (currentInput === '0' || currentInput === '') {
+                 currentInput = '-'; // Começa com negativo
+            } else if (!'+-×÷^('.includes(currentInput.charAt(currentInput.length - 1))) {
+                 // Adiciona *(-1) se for um número isolado ou resultado de função
+                 currentInput = `(${currentInput})×-1`;
             } else {
-                // Se não encontrarmos um número, apenas adicionamos um sinal de negação
-                currentInput += '-';
+                 currentInput += '-'; // Adiciona sinal de menos se após operador
             }
         } else {
             // No modo normal, simplesmente negamos o valor atual
-            currentInput = (parseFloat(currentInput) * -1).toString();
+            if (currentInput !== '0') { // Evita -0
+                 currentInput = (parseFloat(currentInput) * -1).toString();
+            }
         }
     }
     
-    // Função para lidar com operadores
-    function handleOperator(operator) {
+    function handleOperator(operatorAction) {
         let operatorChar;
-        
-        // Converter o operador para seu símbolo correspondente
-        switch (operator) {
+        switch (operatorAction) {
             case 'add': operatorChar = '+'; break;
             case 'subtract': operatorChar = '-'; break;
             case 'multiply': operatorChar = '×'; break;
@@ -350,34 +415,35 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'power': operatorChar = '^'; break;
         }
         
-        // Se há qualquer operador na expressão, entramos automaticamente no modo de expressão
-        // Isso evita que a calculadora calcule partes da expressão antes do tempo
+        const lastChar = currentInput.charAt(currentInput.length - 1);
+
+        // Se o último caractere já é um operador (exceto parêntese de abertura)
+        // e não é um sinal de menos que poderia ser parte de um número negativo
+        if ('+-×÷^'.includes(lastChar) && !(lastChar === '-' && currentInput.length > 1 && '+-×÷^('.includes(currentInput.charAt(currentInput.length - 2)))) {
+            // Substitui o último operador se o novo não for o mesmo ou se for uma potência (para permitir x^-y)
+             if (operatorChar !== lastChar || operatorAction === 'power') {
+                  currentInput = currentInput.slice(0, -1) + operatorChar;
+             }
+        } else if (lastChar !== '(') { // Não adicionar operador logo após '('
+            currentInput += operatorChar;
+        } else if (operatorChar === '-' && lastChar === '(') { // Permitir ( - para números negativos
+            currentInput += operatorChar;
+        }
+
+
         if (currentInput.match(/[\+\-\×\÷\^]/)) {
             expressionMode = true;
         }
         
-        // Se já estamos no modo de expressão, simplesmente adicionar o operador
-        if (expressionMode) {
-            currentInput += operatorChar;
-            return;
+        // Se não estamos no modo de expressão (primeiro operador), configuramos para cálculo simples
+        if (!expressionMode && calculationOperator === '') {
+             previousInput = parseFloat(currentInput.slice(0, -operatorChar.length)).toString(); // Pega o número antes do operador
+             calculationOperator = operatorAction;
         }
-        
-        // MODIFICADO: Não calcular nada aqui, apenas acumular a expressão
-        // Configurar para a próxima operação
-        previousInput = currentInput;
-        calculationOperator = operator;
-        
-        // Adicionar o operador ao display
-        currentInput = currentInput + operatorChar;
-        resetScreen = true;
+        resetScreen = true; // Indica que a próxima entrada de dígito/decimal deve iniciar um novo número
     }
     
-    // Função para calcular funções matemáticas (sqrt, log, ln, exp)
     function calculateFunction(funcName) {
-        // MODIFICADO: Sempre entrar no modo de expressão ao usar funções matemáticas
-        // Isso garante que a calculadora aguarde o sinal de igual para calcular
-        
-        // Converter nomes de funções JavaScript para representações mais amigáveis para exibição
         let displayFunction;
         switch (funcName) {
             case 'Math.sqrt': displayFunction = 'sqrt'; break;
@@ -387,245 +453,190 @@ document.addEventListener('DOMContentLoaded', function() {
             default: displayFunction = funcName;
         }
         
-        // Ativar o modo de expressão
         expressionMode = true;
-        
-        // Se o valor atual for apenas "0", substituí-lo
+        const lastChar = currentInput.charAt(currentInput.length - 1);
+
         if (currentInput === '0') {
             currentInput = displayFunction + '(';
-        } else {
-            // Caso contrário, anexar a função ao valor atual
+        } else if (/\d$/.test(lastChar) || lastChar === ')') { // Se o último é dígito ou ')', multiplica
+            currentInput += '×' + displayFunction + '(';
+        }
+        else { // Senão, apenas anexa
             currentInput += displayFunction + '(';
         }
-        
-        // Não resetamos a tela
-        resetScreen = false;
+        resetScreen = false; // Funções esperam um argumento, não resetam para nova entrada imediatamente
     }
     
-    // Função para calcular
     function calculate() {
-        // Se estamos no modo de expressão ou temos operadores no display, 
-        // tentamos avaliar a expressão completa
-        if (expressionMode || /[\+\-\×\÷\^]/.test(currentInput) || 
-            /(sqrt|log|ln|exp)\(/.test(currentInput)) {
+        if (expressionMode || /[\+\-\×\÷\^()]/.test(currentInput) || /(sqrt|log|ln|exp)\(/.test(currentInput)) {
             try {
-                // Verificar parênteses desbalanceados
-                let openCount = (currentInput.match(/\(/g) || []).length;
-                let closeCount = (currentInput.match(/\)/g) || []).length;
-                
-                // Variável temporária para a expressão a ser avaliada
                 let expressionToEvaluate = currentInput;
+                
+                // Contar parênteses
+                let openCount = (expressionToEvaluate.match(/\(/g) || []).length;
+                let closeCount = (expressionToEvaluate.match(/\)/g) || []).length;
                 
                 // Adicionar parênteses de fechamento faltantes
                 if (openCount > closeCount) {
-                    for (let i = 0; i < (openCount - closeCount); i++) {
-                        expressionToEvaluate += ")";
-                    }
+                    expressionToEvaluate += ')'.repeat(openCount - closeCount);
                 }
-                
-                // Substituir funções especiais por suas equivalentes em JavaScript
+
+                // Substituir representações amigáveis por funções/operadores JavaScript
                 expressionToEvaluate = expressionToEvaluate
                     .replace(/sqrt\(/g, 'Math.sqrt(')
                     .replace(/log\(/g, 'Math.log10(')
                     .replace(/ln\(/g, 'Math.log(')
-                    .replace(/exp\(/g, 'Math.exp(');
-                
-                // Preparar a expressão para avaliação
-                expressionToEvaluate = expressionToEvaluate
+                    .replace(/exp\(/g, 'Math.exp(')
                     .replace(/×/g, '*')
                     .replace(/÷/g, '/')
                     .replace(/\^/g, '**');
                 
+                 // Tratar porcentagens: "X% de Y" -> (X/100)*Y, "Y+X%" -> Y*(1+X/100), "X%" -> X/100
+                expressionToEvaluate = expressionToEvaluate.replace(/(\d+\.?\d*)%/g, (match, p1) => `(${p1}/100)`);
+                // Regex para "Y + X%" ou "Y - X%" ou "Y * X%" ou "Y / X%"
+                expressionToEvaluate = expressionToEvaluate.replace(/(\d+\.?\d*)\s*([*\/+-])\s*\((\d+\.?\d*)\/100\)/g, (match, y, op, x) => {
+                    const valY = parseFloat(y);
+                    const valX = parseFloat(x);
+                    if (op === '+') return (valY * (1 + valX/100)).toString();
+                    if (op === '-') return (valY * (1 - valX/100)).toString();
+                    // Para * e /, a conversão direta de X% para X/100 já é o desejado.
+                    // Apenas retornamos a forma original para ser avaliada por eval.
+                    return `${y}${op}(${x}/100)`;
+                });
+
+
                 console.log("Expressão a ser avaliada:", expressionToEvaluate);
                 
-                // Avaliar a expressão
                 const result = eval(expressionToEvaluate);
                 
-                // Se não tivermos um resultado válido, manter a expressão original
-                if (result === undefined || result === null) {
-                    alert("Erro: Resultado indefinido.");
-                    return;
-                }
-                
-                // Verificar se o resultado é um número
-                if (isNaN(result)) {
-                    alert("Erro: O resultado não é um número válido.");
+                if (result === undefined || result === null || !isFinite(result)) {
+                    alert("Erro: Resultado inválido ou indefinido.");
+                    // currentInput = 'Erro'; // Ou manter a expressão original
                     return;
                 }
                 
                 currentInput = formatResult(result);
-                expressionMode = false;
+                expressionMode = false; 
                 resetScreen = true;
-                
-                // Limpar operadores e valores armazenados
                 calculationOperator = '';
                 previousInput = '';
                 
             } catch (error) {
                 console.error("Erro ao avaliar expressão:", error);
                 alert("Erro na expressão: " + error.message);
-                return;
             }
-            
             return;
         }
         
-        // Modo normal (sem expressões)
+        // Modo normal (sem expressões) - Este bloco pode ser simplificado ou removido se tudo for tratado como expressão.
         if (!calculationOperator) return;
         
-        const inputValue = parseFloat(currentInput);
-        const previousValue = parseFloat(previousInput);
+        // Para cálculo simples, o `currentInput` já é a expressão, ex: "2+3"
+        // Esta parte pode ser desnecessária se o `calculate()` acima já trata tudo.
+        // No entanto, deixaremos por ora para o caso de um cálculo simples não ser pego pelo `if (expressionMode ...)`
+        const parts = currentInput.split(new RegExp(`([${calculationOperator === 'multiply' ? '×' : calculationOperator === 'divide' ? '÷' : calculationOperator === 'power' ? '^' : calculationOperator}])`));
+        if (parts.length < 3) return; // Precisa de operando, operador, operando
+
+        const val1 = parseFloat(previousInput);
+        const val2 = parseFloat(parts[2]); // O segundo operando
         let result;
         
         switch(calculationOperator) {
-            case 'add':
-                result = previousValue + inputValue;
-                break;
-            case 'subtract':
-                result = previousValue - inputValue;
-                break;
-            case 'multiply':
-                result = previousValue * inputValue;
-                break;
+            case 'add': result = val1 + val2; break;
+            case 'subtract': result = val1 - val2; break;
+            case 'multiply': result = val1 * val2; break;
             case 'divide':
-                if (inputValue === 0) {
+                if (val2 === 0) {
                     alert('Erro: Divisão por zero!');
-                    resetCalculator();
-                    return;
+                    resetCalculator(); return;
                 }
-                result = previousValue / inputValue;
+                result = val1 / val2;
                 break;
-            case 'power':
-                result = Math.pow(previousValue, inputValue);
-                break;
+            case 'power': result = Math.pow(val1, val2); break;
         }
         
-        // Mostrar o resultado
         currentInput = formatResult(result);
         calculationOperator = '';
+        previousInput = '';
         resetScreen = true;
     }
     
-    // Função para calcular porcentagem
     function calculatePercent() {
-        const value = parseFloat(currentInput);
-        
-        if (expressionMode) {
-            // No modo expressão, podemos substituir o último número por sua versão percentual
-            const match = currentInput.match(/[0-9.]+$/);
-            if (match) {
-                const lastNumber = match[0];
-                const percent = parseFloat(lastNumber) / 100;
-                const position = currentInput.lastIndexOf(lastNumber);
-                currentInput = currentInput.substring(0, position) + percent.toString();
-            }
-        } else {
-            // No modo normal, convertemos o valor para porcentagem
-            currentInput = (value / 100).toString();
+        const lastChar = currentInput.charAt(currentInput.length - 1);
+        // Só adiciona % se o último caractere for um número ou )
+        if (/\d$/.test(lastChar) || lastChar === ')') {
+            currentInput += '%';
+            expressionMode = true; // Usar % geralmente implica uma expressão
         }
+        // Não calcula imediatamente, o cálculo de % é feito em `calculate()`
     }
     
-    // Função para calcular inverso (1/x)
     function calculateInverse() {
-        // Se estamos no modo de expressão ou temos operadores, precisamos identificar o último número
-        if (expressionMode || /[\+\-\×\÷\^]/.test(currentInput)) {
-            // Encontrar o último número na expressão atual
-            const numberMatch = currentInput.match(/(\d+\.?\d*|\.\d+)$/);
-            
-            if (numberMatch) {
-                // Obter o último número e sua posição
-                const lastNumber = numberMatch[0];
-                const position = currentInput.lastIndexOf(lastNumber);
-                
-                // Verificar se é zero para evitar divisão por zero
-                if (parseFloat(lastNumber) === 0) {
-                    alert('Erro: Divisão por zero!');
-                    return;
-                }
-                
-                // Calcular o inverso do último número
-                const inverseValue = 1 / parseFloat(lastNumber);
-                
-                // Substituir o último número pelo seu inverso
-                currentInput = currentInput.substring(0, position) + formatResult(inverseValue);
-                
-                return;
-            }
-        }
-        
-        // Caso simples - não há expressão, apenas um número
-        const value = parseFloat(currentInput);
-        
-        // Verificar divisão por zero
-        if (value === 0) {
+        // Envolve o conteúdo atual (ou o último número) com (1/(...))
+        if (currentInput === '0') {
             alert('Erro: Divisão por zero!');
             return;
         }
-        
-        // Calcular o inverso diretamente
-        currentInput = formatResult(1 / value);
-    }
-    
-    // Função para formatar resultado
-    function formatResult(value) {
-        // Verificar se é um número finito
-        if (!isFinite(value)) {
-            return value.toString();
+        // Tenta identificar o último número ou expressão entre parênteses
+        const match = currentInput.match(/([+\-×÷^])?((?:\([^)]*\)|[0-9.]+|[a-zA-Z]+\([^)]*\))*)$/);
+
+        if (match && match[2] && match[2] !== '0') {
+            const prefix = match[1] || ''; // Operador anterior, se houver
+            const termToInvert = match[2];
+            const startIndex = currentInput.lastIndexOf(prefix + termToInvert);
+            
+            currentInput = currentInput.substring(0, startIndex) + prefix + `(1÷${termToInvert})`;
+        } else {
+             // Se não encontrar um termo claro, tenta inverter tudo
+            currentInput = `(1÷${currentInput})`;
         }
-        
-        // Converter para string com até 10 casas decimais
-        const stringValue = value.toFixed(10);
-        
-        // Remover zeros à direita e ponto decimal desnecessário
-        return parseFloat(stringValue).toString();
-        
-        // Note: A conversão para vírgula é feita na função updateDisplay
+        expressionMode = true;
+        resetScreen = false; // A expressão foi modificada, não resetar para nova entrada
     }
     
-    // Função para deletar último caractere (backspace)
+    function formatResult(value) {
+        if (!isFinite(value)) {
+            return "Erro"; // Ou value.toString() para Infinity/NaN
+        }
+        const stringValue = value.toFixed(10);
+        return parseFloat(stringValue).toString();
+    }
+    
     function backspace() {
-        if (currentInput.length === 1 || (currentInput.length === 2 && currentInput.startsWith('-'))) {
-            currentInput = '0';
-            // Se removemos todos os caracteres, saímos do modo de expressão
-            if (expressionMode && currentInput === '0') {
-                expressionMode = false;
-            }
+        if (currentInput.endsWith('sqrt(') || currentInput.endsWith('log(') || currentInput.endsWith('ln(') || currentInput.endsWith('exp(') ) {
+            currentInput = currentInput.slice(0, -5); // Remove "sqrt(" etc.
         } else {
             currentInput = currentInput.slice(0, -1);
         }
-    }
-    
-    // Função para limpar apenas a entrada atual
-    function clearEntry() {
-        // Se estamos no modo de expressão ou já temos uma operação complexa
-        if (expressionMode || /[\+\-\×\÷\^]/.test(currentInput)) {
-            // Encontrar a última parte da expressão (após o último operador)
-            const parts = currentInput.split(/([+\-×÷^()])/);
-            
-            // Se temos partes suficientes para formar uma expressão
-            if (parts.length > 1) {
-                // Remover apenas a última parte (mantendo operadores e valores anteriores)
-                let newExpression = '';
-                for (let i = 0; i < parts.length - 1; i++) {
-                    newExpression += parts[i];
-                }
-                currentInput = newExpression;
-                
-                // Se terminar com um operador, não resetamos a tela na próxima entrada
-                if (/[+\-×÷^(]$/.test(currentInput)) {
-                    resetScreen = false;
-                }
-            } else {
-                // Se não conseguirmos identificar partes, apenas limpar tudo
-                currentInput = '0';
-            }
-        } else {
-            // No modo normal, simplesmente limpar o valor atual
+
+        if (currentInput === '') {
             currentInput = '0';
+            expressionMode = false; // Se limpou tudo, sai do modo expressão
         }
     }
     
-    // Função para resetar calculadora
+    function clearEntry() {
+        // Limpa o último número ou operador inserido
+        // Se currentInput for "2+3*4", CE torna "2+3*"
+        // Se currentInput for "2+3*", CE torna "2+"
+        // Se currentInput for "2+", CE torna "2"
+        // Se currentInput for "2", CE torna "0"
+        const match = currentInput.match(/^(.*)([+\-×÷^])([^+\-×÷^]*)$/); // Tenta encontrar "prefixo OP sufixo"
+        if (match && match[3] !== "") { // Se há um sufixo (número após o último operador)
+            currentInput = match[1] + match[2]; // Remove o sufixo: "prefixo OP"
+        } else if (match && match[3] === "") { // Se o último é um operador
+            currentInput = match[1]; // Remove o operador: "prefixo"
+        } else { // Se é apenas um número ou expressão inicial
+            currentInput = '0';
+            expressionMode = false;
+        }
+         if (currentInput === '') {
+            currentInput = '0';
+            expressionMode = false;
+        }
+        resetScreen = false; // CE geralmente não implica resetar para a próxima entrada de dígito
+    }
+    
     function resetCalculator() {
         currentInput = '0';
         previousInput = '';
@@ -634,66 +645,57 @@ document.addEventListener('DOMContentLoaded', function() {
         expressionMode = false;
     }
     
-    // Função para aplicar valor ao campo que chamou a calculadora
     function applyValueToField() {
         if (activeInputField) {
-            activeInputField.value = currentInput;
+            // Calcula o valor final antes de aplicar, se for uma expressão
+            if (expressionMode || /[\+\-\×\÷\^()]/.test(currentInput)) {
+                calculate(); // Calcula e atualiza currentInput com o resultado
+            }
+            // O valor em currentInput já está como string com '.' decimal
+            // Se o campo de destino espera vírgula, a conversão deve ser feita no lado do campo
+            // ou garantir que currentInput seja convertido para formato numérico aqui
+            try {
+                const numericValue = parseFloat(currentInput.replace(',', '.')); // Garante que é número
+                if (!isNaN(numericValue)) {
+                    activeInputField.value = numericValue.toString(); // Aplica como string que o input[type=number] entende
+                } else {
+                     activeInputField.value = currentInput; // Se não for numérico, aplica como está
+                }
+
+            } catch (e) {
+                activeInputField.value = currentInput; // Fallback
+            }
             
-            // Fechar calculadora
             calculatorModal.style.display = "none";
-            
-            // Disparar evento de mudança para acionar qualquer validação
             const event = new Event('input', { bubbles: true });
             activeInputField.dispatchEvent(event);
-            
-            // Restaurar foco no campo
             activeInputField.focus();
         }
     }
     
-    // Função para lidar com entrada do teclado
     function handleKeyboardInput(event) {
+        // Não previne Default se for Ctrl+C, Ctrl+V, etc.
+        if (event.ctrlKey || event.metaKey) {
+            return;
+        }
         event.preventDefault();
         
-        // Números e operadores
         if (/[0-9]/.test(event.key)) {
             inputDigit(event.key);
         } else if (event.key === '.' || event.key === ',') {
-            // Aceitar tanto ponto quanto vírgula no teclado
             inputDecimal();
         } else if (event.key === '+') {
-            // Se estamos no modo de expressão, adicionar o operador diretamente
-            if (expressionMode) {
-                currentInput += '+';
-            } else {
-                handleOperator('add');
-            }
+            handleOperator('add');
         } else if (event.key === '-') {
-            if (expressionMode) {
-                currentInput += '-';
-            } else {
-                handleOperator('subtract');
-            }
+            handleOperator('subtract');
         } else if (event.key === '*') {
-            if (expressionMode) {
-                currentInput += '×';
-            } else {
-                handleOperator('multiply');
-            }
+            handleOperator('multiply');
         } else if (event.key === '/') {
-            if (expressionMode) {
-                currentInput += '÷';
-            } else {
-                handleOperator('divide');
-            }
+            handleOperator('divide');
         } else if (event.key === '%') {
             calculatePercent();
         } else if (event.key === '^') {
-            if (expressionMode) {
-                currentInput += '^';
-            } else {
-                handleOperator('power');
-            }
+            handleOperator('power');
         } else if (event.key === '(') {
             inputParenthesis('(');
         } else if (event.key === ')') {
@@ -704,13 +706,11 @@ document.addEventListener('DOMContentLoaded', function() {
             calculatorModal.style.display = "none";
         } else if (event.key === 'Backspace') {
             backspace();
-        } else if (event.key === 'Delete') {
+        } else if (event.key === 'Delete') { // Ou 'c'/'C' para Clear
             resetCalculator();
-        } else if (event.key === 'p' || event.key === 'P') {
-            // Atalho para pi (p)
+        } else if ((event.key === 'p' || event.key === 'P') && !event.shiftKey) {
             inputConstant('pi');
-        } else if (event.key === 'e' || event.key === 'E') {
-            // Atalho para e (e)
+        } else if ((event.key === 'e' || event.key === 'E') && !event.shiftKey && !event.altKey) { // Evitar conflito com € em alguns teclados
             inputConstant('euler');
         }
         
