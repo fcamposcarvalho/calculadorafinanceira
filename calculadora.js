@@ -192,7 +192,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para atualizar o display
     function updateDisplay() {
-        calcDisplay.value = currentInput;
+        // Substituir pontos por vírgulas para exibição (padrão brasileiro)
+        calcDisplay.value = currentInput.replace(/\./g, ',');
     }
     
     // Função para inserir dígitos
@@ -263,6 +264,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para inserir ponto decimal
     function inputDecimal() {
+        // Usamos o ponto internamente, mas exibimos como vírgula
+        
         // Se o último caractere já for um ponto, não fazer nada
         if (currentInput.endsWith('.')) {
             return;
@@ -275,11 +278,31 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Analisamos a última parte numérica da entrada
-        const parts = currentInput.split(/[\+\-\×\÷\(\)]/);
+        // NOVO: Verificar se precisamos adicionar um 0 antes da vírgula
+        // Caso 1: Se o display estiver vazio ou for apenas 0
+        if (currentInput === '' || currentInput === '0') {
+            currentInput = '0.';
+            return;
+        }
+        
+        // Caso 2: Se o último caractere for um operador ou parêntese
+        const lastChar = currentInput.charAt(currentInput.length - 1);
+        if ('+-×÷^('.includes(lastChar)) {
+            currentInput += '0.';
+            return;
+        }
+        
+        // Caso 3: Se não encontrarmos nenhum dígito após o último operador
+        // Para lidar com casos como "0,2+"
+        const parts = currentInput.split(/[+\-×÷^(]/);
         const lastPart = parts[parts.length - 1];
         
-        // Adicionar ponto decimal apenas se a última parte não contiver um ponto
+        if (lastPart === '') {
+            currentInput += '0.';
+            return;
+        }
+        
+        // Caso normal: Analisamos a última parte numérica da entrada
         if (!lastPart.includes('.')) {
             currentInput += '.';
         }
@@ -351,44 +374,40 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para calcular funções matemáticas (sqrt, log, ln, exp)
     function calculateFunction(funcName) {
-        // Se estamos no modo de expressão, adicionamos a função e um parêntese de abertura
-        if (expressionMode) {
-            currentInput += funcName + '(';
-            return;
-        }
+        // MODIFICADO: Sempre entrar no modo de expressão ao usar funções matemáticas
+        // Isso garante que a calculadora aguarde o sinal de igual para calcular
         
-        // No modo normal, calculamos diretamente o resultado
-        const value = parseFloat(currentInput);
-        
-        // Verificar restrições para cada função
-        if ((funcName === 'Math.log10' || funcName === 'Math.log') && value <= 0) {
-            alert('Erro: Logaritmo de número não-positivo!');
-            return;
-        }
-        
-        if (funcName === 'Math.sqrt' && value < 0) {
-            alert('Erro: Não é possível calcular a raiz quadrada de um número negativo!');
-            return;
-        }
-        
-        // Calcular o resultado da função
-        let result;
+        // Converter nomes de funções JavaScript para representações mais amigáveis para exibição
+        let displayFunction;
         switch (funcName) {
-            case 'Math.sqrt': result = Math.sqrt(value); break;
-            case 'Math.log10': result = Math.log10(value); break;
-            case 'Math.log': result = Math.log(value); break;
-            case 'Math.exp': result = Math.exp(value); break;
+            case 'Math.sqrt': displayFunction = 'sqrt'; break;
+            case 'Math.log10': displayFunction = 'log'; break;
+            case 'Math.log': displayFunction = 'ln'; break;
+            case 'Math.exp': displayFunction = 'exp'; break;
+            default: displayFunction = funcName;
         }
         
-        currentInput = formatResult(result);
-        resetScreen = true;
+        // Ativar o modo de expressão
+        expressionMode = true;
+        
+        // Se o valor atual for apenas "0", substituí-lo
+        if (currentInput === '0') {
+            currentInput = displayFunction + '(';
+        } else {
+            // Caso contrário, anexar a função ao valor atual
+            currentInput += displayFunction + '(';
+        }
+        
+        // Não resetamos a tela
+        resetScreen = false;
     }
     
     // Função para calcular
     function calculate() {
         // Se estamos no modo de expressão ou temos operadores no display, 
         // tentamos avaliar a expressão completa
-        if (expressionMode || /[\+\-\×\÷\^]/.test(currentInput)) {
+        if (expressionMode || /[\+\-\×\÷\^]/.test(currentInput) || 
+            /(sqrt|log|ln|exp)\(/.test(currentInput)) {
             try {
                 // Verificar parênteses desbalanceados
                 let openCount = (currentInput.match(/\(/g) || []).length;
@@ -404,6 +423,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
+                // Substituir funções especiais por suas equivalentes em JavaScript
+                expressionToEvaluate = expressionToEvaluate
+                    .replace(/sqrt\(/g, 'Math.sqrt(')
+                    .replace(/log\(/g, 'Math.log10(')
+                    .replace(/ln\(/g, 'Math.log(')
+                    .replace(/exp\(/g, 'Math.exp(');
+                
                 // Preparar a expressão para avaliação
                 expressionToEvaluate = expressionToEvaluate
                     .replace(/×/g, '*')
@@ -414,6 +440,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Avaliar a expressão
                 const result = eval(expressionToEvaluate);
+                
+                // Se não tivermos um resultado válido, manter a expressão original
+                if (result === undefined || result === null) {
+                    alert("Erro: Resultado indefinido.");
+                    return;
+                }
+                
+                // Verificar se o resultado é um número
+                if (isNaN(result)) {
+                    alert("Erro: O resultado não é um número válido.");
+                    return;
+                }
                 
                 currentInput = formatResult(result);
                 expressionMode = false;
@@ -489,20 +527,43 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para calcular inverso (1/x)
     function calculateInverse() {
+        // Se estamos no modo de expressão ou temos operadores, precisamos identificar o último número
+        if (expressionMode || /[\+\-\×\÷\^]/.test(currentInput)) {
+            // Encontrar o último número na expressão atual
+            const numberMatch = currentInput.match(/(\d+\.?\d*|\.\d+)$/);
+            
+            if (numberMatch) {
+                // Obter o último número e sua posição
+                const lastNumber = numberMatch[0];
+                const position = currentInput.lastIndexOf(lastNumber);
+                
+                // Verificar se é zero para evitar divisão por zero
+                if (parseFloat(lastNumber) === 0) {
+                    alert('Erro: Divisão por zero!');
+                    return;
+                }
+                
+                // Calcular o inverso do último número
+                const inverseValue = 1 / parseFloat(lastNumber);
+                
+                // Substituir o último número pelo seu inverso
+                currentInput = currentInput.substring(0, position) + formatResult(inverseValue);
+                
+                return;
+            }
+        }
+        
+        // Caso simples - não há expressão, apenas um número
         const value = parseFloat(currentInput);
         
+        // Verificar divisão por zero
         if (value === 0) {
             alert('Erro: Divisão por zero!');
             return;
         }
         
-        if (expressionMode) {
-            // No modo expressão, podemos adicionar uma expressão de inverso
-            currentInput += '(1/' + value + ')';
-        } else {
-            // No modo normal, calculamos diretamente
-            currentInput = formatResult(1 / value);
-        }
+        // Calcular o inverso diretamente
+        currentInput = formatResult(1 / value);
     }
     
     // Função para formatar resultado
@@ -517,6 +578,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Remover zeros à direita e ponto decimal desnecessário
         return parseFloat(stringValue).toString();
+        
+        // Note: A conversão para vírgula é feita na função updateDisplay
     }
     
     // Função para deletar último caractere (backspace)
@@ -595,7 +658,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Números e operadores
         if (/[0-9]/.test(event.key)) {
             inputDigit(event.key);
-        } else if (event.key === '.') {
+        } else if (event.key === '.' || event.key === ',') {
+            // Aceitar tanto ponto quanto vírgula no teclado
             inputDecimal();
         } else if (event.key === '+') {
             // Se estamos no modo de expressão, adicionar o operador diretamente
