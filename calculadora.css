@@ -1,13 +1,76 @@
 :root {
     --primary-color: #3a7ca5;
     --primary-dark: #2c5d7c;
-    --secondary-color: #f8f9fa;
+    --secondary-color: #f8f9fa; /* Fundo atual do btn-secondary */
     --border-color: #dee2e6;
     --success-color: #28a745;
     --error-color: #dc3545;
     --text-color: #343a40;
     --light-gray: #f5f5f5;
+
+    /* Novas cores suaves sugeridas */
+    --soft-blue: #d1e7f3; /* Azul mais claro e suave */
+    --soft-blue-hover: #badec9;
+    --soft-green: #d4edda; /* Verde claro (relacionado ao success) */
+    --soft-green-hover: #c3e6cb;
+    --soft-orange: #ffe8d6; /* Laranja claro para Limpar/Atenção */
+    --soft-orange-hover: #fed7b3;
+    --soft-gray: #e9ecef; /* Cinza claro (alternativa para botões de info) */
+    --soft-gray-hover: #d8dde1;
 }
+
+/* ... (restante do seu CSS existente até .btn-secondary) ... */
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-secondary { /* Este será o estilo base para os botões que não são "Calcular" */
+    background-color: var(--secondary-color); /* Mantém o fundo quase branco */
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+.btn-secondary:hover {
+    background-color: #e9ecef; /* Um cinza um pouco mais escuro no hover */
+}
+
+/* Novos estilos para botões específicos com cores suaves */
+.btn-info { /* Para Amortização, Histórico */
+    background-color: var(--soft-blue);
+    color: var(--primary-dark); /* Texto mais escuro para contraste com fundo claro */
+    border: 1px solid #b4cad6; /* Borda sutil um pouco mais escura que o fundo */
+}
+.btn-info:hover {
+    background-color: #b9d7e9; /* Azul um pouco mais escuro no hover */
+    border-color: #a0c2d6;
+}
+
+.btn-tool { /* Para Calculadora */
+    background-color: var(--soft-green);
+    color: #155724; /* Verde escuro para texto (do bootstrap success text color) */
+    border: 1px solid #badbcc; /* Borda sutil */
+}
+.btn-tool:hover {
+    background-color: var(--soft-green-hover);
+    border-color: #a6c9b3;
+}
+
+.btn-action { /* Para Limpar */
+    background-color: var(--soft-orange);
+    color: #721c24; /* Cor de texto de erro/alerta escura */
+    border: 1px solid #f5c6cb; /* Borda sutil (usando a do .error como base) */
+}
+.btn-action:hover {
+    background-color: var(--soft-orange-hover);
+    border-color: #f1b0b7;
+}
+
+
+/* ... (restante do seu CSS) ... */
 
 * {
     box-sizing: border-box;
@@ -107,7 +170,7 @@ input:focus, select:focus {
     box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
 }
 
-select {
+select { /* Estilos para o select nativo, caso o custom dropdown falhe ou seja removido */
     cursor: pointer;
     appearance: none;
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -284,7 +347,7 @@ footer {
     color: var(--primary-dark);
     font-weight: 600;
     position: sticky;
-    top: 0;
+    top: 0; /* Para o header da tabela ficar fixo no topo do modal-content */
     z-index: 10;
 }
 
@@ -292,12 +355,12 @@ footer {
     background-color: rgba(0,0,0,0.02);
 }
 
-.amortization-table tr:last-child td {
+.amortization-table tr:last-child td { /* Linha de totais */
     font-weight: bold;
     border-top: 2px solid var(--primary-color);
     background-color: var(--light-gray);
     position: sticky;
-    bottom: 0;
+    bottom: 0; /* Para a linha de total ficar fixa no final do modal-content */
     z-index: 5;
 }
 
@@ -309,9 +372,31 @@ footer {
     border-radius: 5px;
     font-weight: 600;
     position: sticky;
-    top: 0;
-    z-index: 15;
+    top: 0; /* Ajustado para que o resumo fique fixo NO TOPO do conteúdo scrollável do modal, se o header da tabela estiver abaixo dele */
+    z-index: 15; /* Maior que o z-index do header da tabela */
 }
+/* Se o .amortization-summary estiver dentro do mesmo container que a tabela e a tabela tiver sticky header,
+   o top do summary deve ser 0. Se o header da tabela for sticky e o summary também,
+   o top do header da tabela precisará ser ajustado para depois da altura do summary.
+   Vamos assumir que o summary fica acima da tabela e ambos são sticky em relação ao .modal-content. */
+.amortization-table th {
+    top: 0; /* Se não houver summary sticky acima, ou se o summary não for sticky. */
+    /* Se .amortization-summary for sticky E estiver antes da tabela no mesmo scroll container,
+       o 'top' do 'th' precisaria de um valor para ficar abaixo do summary. Ex: top: 60px;
+       Mas com a estrutura atual, o summary e a tabela estão dentro de #amortizationContent.
+       O sticky é relativo ao ancestral com overflow. No caso, .modal-content.
+       Para ambos serem sticky, o summary aparecerá sobre a tabela.
+       Uma solução é colocar o summary FORA do container da tabela se eles precisarem de stickiness independente,
+       ou ajustar o 'top' do 'th' dinamicamente, o que é complexo.
+       A melhor abordagem é garantir que o summary não sobreponha o header da tabela.
+       Se o summary for sticky top:0, e o header da tabela também, o header da tabela pode ficar escondido.
+       Vamos fazer o header da tabela sticky em relação ao topo do seu container, e o summary também.
+       O header da tabela precisa de um top que o coloque abaixo do summary.
+       Por simplicidade, vou manter o header da tabela sticky no top:0 de seu contexto de scroll.
+       O summary, se também sticky, deve ter um background para não ser transparente sobre a tabela.
+    */
+}
+
 
 .amortization-summary p {
     margin: 5px 0;
@@ -338,7 +423,7 @@ footer {
     
     .modal-content {
         width: 95%;
-        margin: 10% auto;
+        margin: 10% auto; /* Aumenta margem no mobile para melhor visualização */
     }
     
     .amortization-table {
@@ -349,28 +434,24 @@ footer {
     .amortization-table td {
         padding: 6px 4px;
     }
+     .amortization-summary {
+        font-size: 13px;
+    }
 }
 
-/* Containers para resultados adicionais */
+/* Containers para resultados adicionais (já existentes) */
 .interest-value-container {
     margin-top: 15px;
     display: none;
 }
-
-.interest-value-container.visible {
-    display: block;
-}
-
+.interest-value-container.visible { display: block; }
 .total-payments-container {
     margin-top: 15px;
     display: none;
 }
+.total-payments-container.visible { display: block; }
 
-.total-payments-container.visible {
-    display: block;
-}
-
-/* Layout para resultados */
+/* Layout para resultados (já existentes) */
 .result-row {
     display: flex;
     justify-content: space-around;
@@ -378,29 +459,84 @@ footer {
     gap: 25px;
     margin-top: 20px;
 }
-
 .result-column {
     flex: 1;
     min-width: 200px;
     text-align: center;
 }
-
-/* Ajuste para quando temos três colunas (resultado, juros e total de pagamentos) */
 .result-row.three-columns .result-column {
-    flex-basis: 30%;
-    min-width: 150px;
+    flex-basis: 30%; /* Ajuste para caber 3 colunas */
+    min-width: 150px; /* Reduzido para mobile-first */
 }
 
-/* Reduzir espaçamento nos itens do dropdown personalizado */
-.dropdown-item {
-    padding: 6px 12px !important; /* Reduzir de 12px para 6px */
+/* ESTILOS MOVIDOS DO JS PARA CÁ (Dropdown Personalizado) */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Herdado de '*' mas explícito aqui */
 }
 
-/* Ajustar espaçamento vertical na lista do dropdown */
+.dropdown-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px; /* Ajustar padding para consistência com inputs */
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: white;
+    transition: border-color 0.3s;
+    font-size: 18px; /* Ajustar para consistência com inputs */
+    line-height: 1.5; /* Adicionado para melhor alinhamento vertical do texto */
+}
+
+.dropdown-button:hover, .dropdown-button:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
+}
+
+.dropdown-icon {
+    margin-left: 8px;
+    color: var(--primary-color); /* Usar variável de cor */
+    font-size: 10px; /* Ajustar tamanho do ícone se necessário */
+}
+
 .dropdown-list {
-    padding-top: 3px;
-    padding-bottom: 3px;
+    position: absolute;
+    top: 100%; 
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-top: none; /* Para melhor junção visual com o botão */
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 100; /* Assegura que fique sobre outros elementos */
+    max-height: 250px; /* Ajustado para não ser muito longo */
+    overflow-y: auto;
+    padding-top: 3px;  /* Espaçamento interno já existente */
+    padding-bottom: 3px; /* Espaçamento interno já existente */
 }
+
+.dropdown-item {
+    padding: 8px 12px !important; /* Aumentado um pouco o padding para melhor clique */
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 16px; /* Ajustar tamanho da fonte */
+}
+
+.dropdown-item:hover {
+    background-color: var(--light-gray); /* Usar variável */
+}
+
+.dropdown-item.selected {
+    background-color: #e9f2f7; /* Cor suave para item selecionado */
+    color: var(--primary-dark); /* Usar variável */
+    font-weight: 600; /* Um pouco mais de destaque */
+}
+/* FIM DOS ESTILOS DO DROPDOWN */
+
 
 .calculator-modal {
     max-width: 340px;
@@ -498,56 +634,37 @@ input[type="number"].highlighted {
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
-
-.calc-btn-num:hover {
-    background-color: #f1f3f5;
-}
+.calc-btn-num:hover { background-color: #f1f3f5; }
 
 .calc-btn-op {
     background-color: #e9ecef;
     color: var(--text-color);
 }
-
-.calc-btn-op:hover {
-    background-color: #dee2e6;
-}
+.calc-btn-op:hover { background-color: #dee2e6; }
 
 .calc-btn-clear {
-    background-color: #ff6b6b;
+    background-color: #ff6b6b; /* Cor mais vibrante para clear */
     color: white;
     font-weight: bold;
 }
-
-.calc-btn-clear:hover {
-    background-color: #fa5252;
-}
+.calc-btn-clear:hover { background-color: #fa5252; }
 
 .calc-btn-equal {
     background-color: var(--primary-color);
     color: white;
 }
-
-.calc-btn-equal:hover {
-    background-color: var(--primary-dark);
-}
+.calc-btn-equal:hover { background-color: var(--primary-dark); }
 
 .calc-btn-const {
-    background-color: #4dabf7;
+    background-color: #4dabf7; /* Azul diferente para constantes */
     color: white;
 }
-
-.calc-btn-const:hover {
-    background-color: #339af0;
-}
+.calc-btn-const:hover { background-color: #339af0; }
 
 .calc-btn-apply {
-    background-color: #20c997;
+    background-color: var(--success-color); /* Verde para aplicar */
     color: white;
     grid-column: span 4;
     font-weight: bold;
 }
-
-.calc-btn-apply:hover {
-    background-color: #12b886;
-}
-
+.calc-btn-apply:hover { background-color: #1e7e34; } /* Verde mais escuro no hover */

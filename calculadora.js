@@ -1,20 +1,14 @@
 // calculadora.js - Implementação da calculadora básica
-document.addEventListener('DOMContentLoaded', function() {
-    // Elementos do DOM
-    const calculatorBtn = document.getElementById('calculatorBtn');
-    const calculatorModal = document.getElementById('calculatorModal');
-    const closeCalculatorModal = document.getElementById('closeCalculatorModal');
-    const calcDisplay = document.getElementById('calcDisplay');
-    const calcButtons = document.querySelectorAll('.calc-btn');
-    const calculatorModalContentEl = calculatorModal.querySelector('.modal-content.calculator-modal');
 
-    // Variáveis de estado da calculadora
+document.addEventListener('DOMContentLoaded', function() {
+    // -------------------------------------------------------------------
+    // DECLARAÇÃO DE VARIÁVEIS DE ESTADO
+    // -------------------------------------------------------------------
     let currentInput = '0';
-    // previousInput e calculationOperator foram mantidos para possível lógica futura mais simples, mas o foco principal é a construção de expressão.
     let previousInput = ''; 
     let calculationOperator = ''; 
-    let resetScreen = false; // Flag para resetar display na próxima entrada de DÍGITO
-    let expressionMode = false; // Indica se estamos construindo uma expressão complexa
+    let resetScreen = false; 
+    let expressionMode = false; 
     let activeInputField = null;
 
     // Constantes matemáticas
@@ -25,6 +19,21 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     const CONSTANT_VALUES_AS_STRINGS = Object.values(MATH_CONSTANTS).map(v => v.toString());
     const FUNCTION_NAMES = ['sqrt', 'log', 'ln', 'exp'];
+    // -------------------------------------------------------------------
+
+    // Elementos do DOM
+    const calculatorBtn = document.getElementById('calculatorBtn');
+    const calculatorModal = document.getElementById('calculatorModal');
+    const closeCalculatorModal = document.getElementById('closeCalculatorModal');
+    const calcDisplay = document.getElementById('calcDisplay');
+    const calcButtons = document.querySelectorAll('.calc-btn');
+    const calculatorModalContentEl = calculatorModal ? calculatorModal.querySelector('.modal-content.calculator-modal') : null;
+
+    // Verificações iniciais (erros críticos se elementos principais não forem encontrados)
+    if (!calculatorBtn) console.error("ERRO CRÍTICO: Botão #calculatorBtn NÃO encontrado!");
+    if (!calculatorModal) console.error("ERRO CRÍTICO: Modal #calculatorModal NÃO encontrado!");
+    if (!closeCalculatorModal) console.warn("AVISO: Botão #closeCalculatorModal não encontrado.");
+    if (!calcDisplay) console.warn("AVISO: Display #calcDisplay não encontrado.");
 
 
     // --- LÓGICA DE ARRASTE DO MODAL ---
@@ -82,11 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
         function onMouseUp() {
             if (!isDragging) return;
             isDragging = false;
-            calculatorModalContentEl.style.cursor = 'grab';
+            if (calculatorModalContentEl) calculatorModalContentEl.style.cursor = 'grab';
             document.body.style.userSelect = '';
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
         }
+    } else {
+        console.warn("Lógica de arraste do modal NÃO configurada devido à falta de elementos.");
     }
     // --- FIM ARRASTE ---
 
@@ -105,19 +116,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function endsWithCompleteFunction(str) {
         for (const funcName of FUNCTION_NAMES) {
             if (str.endsWith(')')) {
-                // Regex para capturar nome_da_função(conteúdo_interno)
-                // Escapa caracteres especiais no nome da função para a regex
                 const funcCallRegex = new RegExp(funcName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\((.*)\\)$');
                 const match = str.match(funcCallRegex);
                 if (match) {
-                    // Verifica se os parênteses dentro do conteúdo capturado estão balanceados
                     let openParen = 0;
                     for (const char of match[1]) { 
                         if (char === '(') openParen++;
                         else if (char === ')') openParen--;
-                        if (openParen < 0) return false; // Malformado internamente
+                        if (openParen < 0) return false; 
                     }
-                    return openParen === 0; // Se balanceado, é uma função completa
+                    return openParen === 0; 
                 }
             }
         }
@@ -127,7 +135,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function shouldInsertMultiplication(inputStr) {
         if (inputStr === '0' || inputStr === 'Erro') return false;
         const lastChar = inputStr.charAt(inputStr.length - 1);
-        // Multiplica se o último é: número, ')', constante, ou uma função completa
         return (/\d$/.test(lastChar) || lastChar === ')' || endsWithConstant(inputStr) || endsWithCompleteFunction(inputStr));
     }
     
@@ -149,79 +156,27 @@ document.addEventListener('DOMContentLoaded', function() {
         expressionMode = false;
     }
 
-    // --- INICIALIZAÇÃO E EVENTOS GERAIS ---
-    updateDisplay();
-    setupNumericInputs();
-
-    if (calculatorBtn) calculatorBtn.addEventListener('click', openCalculator);
-    if (closeCalculatorModal) closeCalculatorModal.addEventListener('click', () => calculatorModal.style.display = "none");
-    window.addEventListener('click', (event) => { if (event.target === calculatorModal) calculatorModal.style.display = "none"; });
-    document.addEventListener('keydown', (event) => { if (calculatorModal.style.display === 'block') handleKeyboardInput(event); });
-
-    calcButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const action = button.dataset.action;
-            const buttonValue = button.textContent;
-            if (currentInput === 'Erro' && action !== 'clear' && action !== 'backspace') return; 
-
-            if (!action) inputDigit(buttonValue);
-            else {
-                switch (action) {
-                    case 'add': case 'subtract': case 'multiply': case 'divide': case 'power': handleOperator(action); break;
-                    case 'openParenthesis': inputParenthesis('('); break;
-                    case 'closeParenthesis': inputParenthesis(')'); break;
-                    case 'percent': inputPercent(); break;
-                    case 'sqrt': calculateFunction('sqrt'); break;
-                    case 'inverse': calculateInverse(); break;
-                    case 'negate': negateValue(); break;
-                    case 'log': calculateFunction('log'); break;
-                    case 'ln': calculateFunction('ln'); break;
-                    case 'exp': calculateFunction('exp'); break;
-                    case 'pi': case 'euler': case 'phi': inputConstant(action); break;
-                    case 'decimal': inputDecimal(); break;
-                    case 'clear': resetCalculator(); break;
-                    case 'clearEntry': clearEntry(); break;
-                    case 'backspace': backspace(); break;
-                    case 'equals': calculate(); break;
-                    case 'apply': applyValueToField(); break;
-                }
-            }
-            updateDisplay();
-        });
-    });
-
-    function setupNumericInputs() {
-        document.querySelectorAll('input[type="number"]').forEach(input => {
-            input.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter' || event.key === 'F1') {
-                    event.preventDefault(); event.stopPropagation();
-                    activeInputField = this;
-                    openCalculator();
-                    if (this.value && this.value !== "0" && parseFloat(this.value) !== 0) { // Considerar "0.00" como 0
-                        currentInput = this.value.replace(',', '.'); 
-                        resetScreen = true; 
-                        expressionMode = false; 
-                    } else {
-                        resetCalculator(); 
-                    }
-                    updateDisplay();
-                }
-            });
-            if (!input.title) input.title = "Pressione Enter ou F1 para acessar a calculadora";
-            input.addEventListener('focus', () => input.classList.add('highlighted'));
-            input.addEventListener('blur', () => input.classList.remove('highlighted'));
-        });
-    }
-
     // --- FUNÇÕES PRINCIPAIS DA CALCULADORA ---
     function openCalculator() {
-        if (typeof window.resetCalculatorModalPosition === 'function') window.resetCalculatorModalPosition();
+        if (!calculatorModal) {
+            console.error("ERRO em openCalculator: calculatorModal é NULO!");
+            return;
+        }
+        if (typeof window.resetCalculatorModalPosition === 'function') {
+            window.resetCalculatorModalPosition();
+        }
         calculatorModal.style.display = "block";
-        calcDisplay.focus();
+        if (calcDisplay) {
+            calcDisplay.focus();
+        } else {
+            console.warn("Não foi possível focar no calcDisplay porque ele é NULO.");
+        }
     }
 
     function updateDisplay() {
-        calcDisplay.value = currentInput.replace(/\./g, ',');
+        if (calcDisplay) {
+            calcDisplay.value = currentInput.replace(/\./g, ',');
+        }
     }
 
     function inputDigit(digit) {
@@ -239,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             resetScreen = false;
         } else {
-            // Se currentInput termina com ')' e vamos inserir um dígito, inserir '×'
             if (currentInput.charAt(currentInput.length - 1) === ')' && /\d$/.test(digit)) {
                  currentInput += '×' + digit;
             } else {
@@ -280,11 +234,10 @@ document.addEventListener('DOMContentLoaded', function() {
             let openCount = (currentInput.match(/\(/g) || []).length;
             let closeCount = (currentInput.match(/\)/g) || []).length;
             const lastChar = currentInput.charAt(currentInput.length - 1);
-            // Só permite fechar se houver parênteses abertos e o último char não for um operador ou '('
             if (openCount > closeCount && !'+-×÷^('.includes(lastChar) && lastChar !== 'Erro') {
                 currentInput += parenthesis;
             } else {
-                console.warn("Parêntese de fechamento inválido ignorado.");
+                // Silenciosamente ignora ')' inválido
                 return; 
             }
         }
@@ -338,22 +291,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (currentInput === 'Erro') return; 
 
-        // Se o último caractere é um operador (e não é '(' nem o início de um número negativo)
         if ('+-×÷^'.includes(lastChar) && lastChar !== '(') {
-            // Evitar operadores duplos, exceto se for para formar um número negativo com '-' ou permitir x^-y
-            // Se currentInput é "5+", e entra "-", vira "5-"
-            // Se currentInput é "5*", e entra "-", vira "5*-" (para "5 * -2")
-            // Se currentInput é "5^", e entra "-", vira "5^-" (para "5^-2")
             if (operatorChar === '-' && (lastChar === '×' || lastChar === '÷' || lastChar === '^')) {
                 currentInput += operatorChar; 
             } else {
-                 // Substitui o último operador: 5+ com * vira 5*
                 currentInput = currentInput.slice(0, -1) + operatorChar;
             }
-        } else if (lastChar !== '(' || operatorChar === '-') { // Não adicionar operador logo após '(', a menos que seja '-'
+        } else if (lastChar !== '(' || operatorChar === '-') { 
             currentInput += operatorChar;
         } else {
-            // Caso: currentInput é "(", operador é "+". Não faz nada.
             return;
         }
         expressionMode = true;
@@ -362,52 +308,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function negateValue() {
         if (currentInput === 'Erro') return;
-        // Se não estiver no modo de expressão e for um número simples, nega diretamente.
         if (!expressionMode && currentInput !== '0' && !isNaN(parseFloat(currentInput))) {
             currentInput = (parseFloat(currentInput) * -1).toString();
-            updateDisplay(); // Atualiza imediatamente para este caso simples
+            updateDisplay(); 
             return;
         }
-        // Casos iniciais simples
         if (currentInput === '0') { currentInput = '-'; expressionMode = true; updateDisplay(); return; }
         if (currentInput === '-') { currentInput = '0'; expressionMode = true; updateDisplay(); return; }
 
-        // Heurística para negar o "último termo" da expressão.
-        // Pode ter limitações com expressões aninhadas muito complexas.
         let i = currentInput.length - 1;
-        let nesting = 0; // Para parênteses e funções
+        let nesting = 0; 
         
-        // Encontrar o início do último termo (número, função, (expr))
         while (i >= 0) {
             const char = currentInput[i];
             if (char === ')') nesting++;
             else if (char === '(') nesting--;
-            
-            // Se não estamos aninhados e encontramos um operador, o termo começa depois dele
-            if (nesting === 0 && ('+-×÷^'.includes(char))) {
-                i++; 
-                break;
-            }
-            // Se o aninhamento ficou negativo, significa que encontramos um '(' de um nível anterior
-            if (nesting < 0) { 
-                i++; 
-                break;
-            }
+            if (nesting === 0 && ('+-×÷^'.includes(char))) { i++; break; }
+            if (nesting < 0) { i++; break; }
             i--;
         }
-        if (i < 0) i = 0; // O termo é a string inteira
+        if (i < 0) i = 0; 
 
         const prefix = currentInput.substring(0, i);
         let term = currentInput.substring(i);
 
-        if (term.startsWith('-(') && term.endsWith(')')) { // Negação de expressão: - (termo) -> termo
+        if (term.startsWith('-(') && term.endsWith(')')) { 
             term = term.substring(2, term.length - 1);
-        } else if (term.startsWith('-')) { // Negação de número/função: -termo -> termo
+        } else if (term.startsWith('-')) { 
             term = term.substring(1);
-        } else if (term.startsWith('+')) { // +termo -> -termo
+        } else if (term.startsWith('+')) { 
             term = '-' + term.substring(1);
-        } else { // termo -> -termo (ou -(termo) se for complexo)
-            if (term.includes('(') || FUNCTION_NAMES.some(fn => term.startsWith(fn)) || term.includes(' ')) { // Se for função ou expressão com parênteses ou espaços
+        } else { 
+            if (term.includes('(') || FUNCTION_NAMES.some(fn => term.startsWith(fn)) || term.includes(' ')) { 
                 term = `-(${term})`; 
             } else {
                 term = '-' + term;
@@ -432,8 +364,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentInput === '0') alert('Erro: Divisão por zero!');
             return;
         }
-        // Heurística para envolver o "último termo" em (1÷...).
-        // Pode ter limitações com expressões aninhadas muito complexas.
         let i = currentInput.length - 1;
         let nesting = 0;
         while (i >= 0) {
@@ -484,20 +414,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Tratamento de porcentagem:
             // Passo 1: Converter todos os "X%" ou "(expr)%" para "(X/100)" ou "((expr)/100)"
-            // A regex captura um número ou uma expressão entre parênteses seguida por %
             expressionToEvaluate = expressionToEvaluate.replace(/(\d+\.?\d*|\([\s\S]*?\))%/g, (match, p1) => `(${p1}/100)`);
             // Passo 2: Transformar "Y + (X/100)" em "Y * (1 + X/100)" e "Y - (X/100)" em "Y * (1 - X/100)"
-            // Isso permite que o eval calcule corretamente "100 + 10%" como 110, e não 100.1.
-            // Casos como Y * X% ou Y / X% já são tratados corretamente pela substituição do Passo 1.
             expressionToEvaluate = expressionToEvaluate.replace(
                 /(\d+\.?\d*|\([\s\S]*?\))\s*([+\-])\s*\((\d+\.?\d*|\([\s\S]*?\))\/100\)/g,
                 (match, Y, op, X) => {
-                     // Ex: Y + (X/100) => Y * (1 + (X/100))
                      return `${Y} * (1 ${op} (${X}/100))`;
                 }
             );
 
-            console.log("Expressão para eval:", expressionToEvaluate);
+            // console.log("Expressão para eval:", expressionToEvaluate); // Log de depuração opcional
             const result = eval(expressionToEvaluate);
 
             if (result === undefined || result === null || !isFinite(result)) {
@@ -511,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
             _resetCalculationInternalState(); 
 
         } catch (error) {
-            console.error("Erro ao avaliar expressão:", error);
+            console.error("Erro ao avaliar expressão:", error); // Manter este log para erros de eval
             currentInput = 'Erro';
             updateDisplay();
             _resetCalculationInternalState();
@@ -530,7 +456,6 @@ document.addEventListener('DOMContentLoaded', function() {
                      currentInput = currentInput.slice(0, -1);
                 }
                 if (currentInput === '') currentInput = '0';
-                updateDisplay();
                 return;
             }
         }
@@ -539,41 +464,35 @@ document.addEventListener('DOMContentLoaded', function() {
             currentInput = '0';
             expressionMode = false;
         }
-        // Reavaliar se ainda está em modo expressão para resetar o flag se necessário
         if (!/[\+\-\×\÷\^\(\)%]/.test(currentInput) && !FUNCTION_NAMES.some(fn => currentInput.includes(fn))) {
              expressionMode = false;
         }
     }
 
-    function clearEntry() { // CE
+    function clearEntry() { 
         if (currentInput === 'Erro') {
             resetCalculator();
             return;
         }
-        // Tenta remover o último número/operando ou operador.
-        // Ex: "12+34" -> "12+", "12+" -> "12", "12" -> "0"
-        // Ex: "sqrt(12+" -> "sqrt(12", "sqrt(12" -> "sqrt(", "sqrt(" -> "0"
         const match = currentInput.match(/^(.*)([+\-×÷^])([^+\-×÷^(]*)$/);
-        if (match && match[3] !== "") { // Sufixo não vazio (número após operador)
-            currentInput = match[1] + match[2]; // "prefixo" + "operador"
-        } else if (match && match[3] === "") { // Termina com operador
-            currentInput = match[1]; // "prefixo"
-        } else { // É só um número, ou início de expressão como "sqrt("
+        if (match && match[3] !== "") { 
+            currentInput = match[1] + match[2]; 
+        } else if (match && match[3] === "") { 
+            currentInput = match[1]; 
+        } else { 
              for (const func of FUNCTION_NAMES) {
                 if (currentInput.startsWith(func + '(') && currentInput.length > func.length + 1 && currentInput.charAt(currentInput.length - 1) !== '(') {
-                     currentInput = func + '('; // Se "sqrt(5", CE -> "sqrt("
-                     updateDisplay();
+                     currentInput = func + '('; 
                      return;
-                } else if (currentInput === func + '(') { // Se "sqrt(", CE -> "0"
+                } else if (currentInput === func + '(') { 
                      currentInput = '0'; expressionMode = false;
-                     updateDisplay();
                      return;
                 }
             }
             currentInput = '0';
             expressionMode = false;
         }
-        if (currentInput === "") { // Se o prefixo era vazio
+        if (currentInput === "") { 
             currentInput = '0';
             expressionMode = false;
         }
@@ -582,8 +501,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetCalculator() {
         currentInput = '0';
-        _resetCalculationInternalState(); // Chama a função centralizada
-        resetScreen = false; // Para C, o próximo dígito não deve resetar, começa do zero.
+        _resetCalculationInternalState(); 
+        resetScreen = false; 
     }
 
     function applyValueToField() {
@@ -593,7 +512,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 activeInputField.focus();
                 return;
             }
-            // Calcula o valor final antes de aplicar, se for uma expressão pendente E NÃO um resultado já finalizado
             if (expressionMode && /[\+\-\×\÷\^\(\)%]/.test(currentInput) && !resetScreen) {
                 calculate(); 
                 if (currentInput === 'Erro') { 
@@ -603,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             activeInputField.value = currentInput.replace(',', '.'); 
-            calculatorModal.style.display = "none";
+            if (calculatorModal) calculatorModal.style.display = "none";
             const event = new Event('input', { bubbles: true });
             activeInputField.dispatchEvent(event);
             activeInputField.focus();
@@ -615,16 +533,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (currentInput === 'Erro') {
             if (event.key === 'Escape') {
-                calculatorModal.style.display = "none";
+                if (calculatorModal) calculatorModal.style.display = "none";
             } else if (event.key === 'Backspace' || event.key.toLowerCase() === 'c' || event.key === 'Delete') {
                 event.preventDefault();
                 resetCalculator();
                 updateDisplay();
             } else if (/[0-9]/.test(event.key)) { 
                 event.preventDefault();
-                currentInput = event.key; // Começa novo número
+                currentInput = event.key; 
                 resetScreen = false; 
-                expressionMode = false; // Sai do modo erro/expressão anterior
+                expressionMode = false; 
                 updateDisplay();
             } else {
                 event.preventDefault(); 
@@ -632,25 +550,139 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        event.preventDefault(); 
-        
-        if (/[0-9]/.test(event.key)) inputDigit(event.key);
-        else if (event.key === '.' || event.key === ',') inputDecimal();
-        else if (event.key === '+') handleOperator('add');
-        else if (event.key === '-') handleOperator('subtract');
-        else if (event.key === '*') handleOperator('multiply');
-        else if (event.key === '/') handleOperator('divide');
-        else if (event.key === '%') inputPercent();
-        else if (event.key === '^') handleOperator('power');
-        else if (event.key === '(') inputParenthesis('(');
-        else if (event.key === ')') inputParenthesis(')');
-        else if (event.key === 'Enter' || event.key === '=') calculate();
-        else if (event.key === 'Escape') calculatorModal.style.display = "none";
-        else if (event.key === 'Backspace') backspace();
-        else if (event.key.toLowerCase() === 'c' || event.key === 'Delete') resetCalculator(); 
-        else if (event.key.toLowerCase() === 'p' && !event.shiftKey) inputConstant('pi');
-        else if (event.key.toLowerCase() === 'e' && !event.shiftKey && !event.altKey) inputConstant('euler');
+        // Apenas previne o default se a tecla for tratada
+        let keyHandled = true;
+        switch (event.key) {
+            case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+                inputDigit(event.key); break;
+            case '.': case ',': inputDecimal(); break;
+            case '+': handleOperator('add'); break;
+            case '-': handleOperator('subtract'); break;
+            case '*': handleOperator('multiply'); break;
+            case '/': handleOperator('divide'); break;
+            case '%': inputPercent(); break;
+            case '^': handleOperator('power'); break;
+            case '(': inputParenthesis('('); break;
+            case ')': inputParenthesis(')'); break;
+            case 'Enter': case '=': calculate(); break;
+            case 'Escape': if (calculatorModal) calculatorModal.style.display = "none"; break;
+            case 'Backspace': backspace(); break;
+            case 'Delete': resetCalculator(); break;
+            default:
+                if (event.key.toLowerCase() === 'c') { // 'c' para Clear
+                    resetCalculator();
+                } else if (event.key.toLowerCase() === 'p' && !event.shiftKey) {
+                    inputConstant('pi');
+                } else if (event.key.toLowerCase() === 'e' && !event.shiftKey && !event.altKey) {
+                    inputConstant('euler');
+                } else {
+                    keyHandled = false; // Tecla não tratada
+                }
+                break;
+        }
 
-        updateDisplay();
+        if(keyHandled) {
+            event.preventDefault();
+            updateDisplay();
+        }
+    }
+
+    // --- INICIALIZAÇÃO E EVENTOS GERAIS (continuação) ---
+    updateDisplay(); 
+    setupNumericInputs(); 
+
+    if (calculatorBtn) {
+        calculatorBtn.addEventListener('click', function() {
+            openCalculator();
+        });
+    }
+
+    if (closeCalculatorModal) {
+        closeCalculatorModal.addEventListener('click', function() {
+            if (calculatorModal) {
+                calculatorModal.style.display = "none";
+            }
+        });
+    }
+    
+    window.addEventListener('click', function(event) {
+        if (calculatorModal && event.target === calculatorModal) { 
+            calculatorModal.style.display = "none";
+        }
+    });
+    
+    if (calcButtons && calcButtons.length > 0) {
+        calcButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const action = button.dataset.action;
+                const buttonValue = button.textContent;
+                
+                if (currentInput === 'Erro' && action !== 'clear' && action !== 'backspace' && action !== 'clearEntry') {
+                     return;
+                }
+                if (action === 'clearEntry' && currentInput === 'Erro'){ // Permitir CE limpar Erro
+                    resetCalculator();
+                    updateDisplay();
+                    return;
+                }
+
+                if (!action) { 
+                    inputDigit(buttonValue);
+                } else { 
+                    switch(action) {
+                        case 'add': case 'subtract': case 'multiply': case 'divide': case 'power': handleOperator(action); break;
+                        case 'openParenthesis': inputParenthesis('('); break;
+                        case 'closeParenthesis': inputParenthesis(')'); break;
+                        case 'percent': inputPercent(); break;
+                        case 'sqrt': calculateFunction('sqrt'); break;
+                        case 'inverse': calculateInverse(); break;
+                        case 'negate': negateValue(); break;
+                        case 'log': calculateFunction('log'); break;
+                        case 'ln': calculateFunction('ln'); break;
+                        case 'exp': calculateFunction('exp'); break;
+                        case 'pi': inputConstant('pi'); break;
+                        case 'euler': inputConstant('euler'); break;
+                        case 'phi': inputConstant('phi'); break;
+                        case 'decimal': inputDecimal(); break;
+                        case 'clear': resetCalculator(); break;
+                        case 'clearEntry': clearEntry(); break;
+                        case 'backspace': backspace(); break;
+                        case 'equals': calculate(); break;
+                        case 'apply': applyValueToField(); break;
+                    }
+                }
+                updateDisplay(); 
+            });
+        });
+    } else {
+        console.warn("Botões da calculadora (.calc-btn) não encontrados ou array vazio.");
+    }
+
+    function setupNumericInputs() {
+        const numericInputs = document.querySelectorAll('input[type="number"]'); 
+        numericInputs.forEach(input => {
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' || event.key === 'F1') {
+                    event.preventDefault(); 
+                    event.stopPropagation(); 
+                    activeInputField = this;
+                    openCalculator();
+                    
+                    if (this.value && this.value.trim() !== "" && parseFloat(this.value.replace(',', '.')) !== 0) {
+                        currentInput = this.value.replace(',', '.');
+                        resetScreen = true; 
+                        expressionMode = false; 
+                    } else {
+                        resetCalculator(); 
+                    }
+                    updateDisplay();
+                }
+            });
+            if (!input.title) {
+                input.title = "Pressione Enter ou F1 para acessar a calculadora";
+            }
+            input.addEventListener('focus', function() { this.classList.add('highlighted'); });
+            input.addEventListener('blur', function() { this.classList.remove('highlighted'); });
+        });
     }
 });

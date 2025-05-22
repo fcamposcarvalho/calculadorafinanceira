@@ -67,28 +67,29 @@
                         <option value="presentValue">Valor Atual (PV)</option>
                         <option value="futureValue" selected>Valor Futuro (FV)</option>
                     </select>
+                    <!-- O dropdown personalizado será inserido aqui pelo JS -->
                 </div>
                 
 				<div class="button-group">
 					<button class="btn-primary" id="calculateBtn">Calcular</button>
-					<button class="btn-secondary" id="amortizationBtn">Amortização</button>
-                    <button class="btn-secondary" id="calculatorBtn">Calculadora</button>
-					<button class="btn-secondary" id="historyBtn">Histórico</button>
-					<button class="btn-secondary" id="clearBtn">Limpar</button>
+					<button class="btn-info" id="amortizationBtn">Amortização</button> 
+                    <button class="btn-tool" id="calculatorBtn">Calculadora</button> 
+					<button class="btn-log" id="historyBtn">Histórico</button>    <!-- CLASSE ALTERADA AQUI -->
+					<button class="btn-action" id="clearBtn">Limpar</button>      
 				</div>
 
 				<div class="result-container" id="resultContainer">
-					<div class="result-row">
+					<div class="result-row three-columns"> 
 						<div class="result-column">
 							<div class="result-title">Resultado:</div>
 							<div class="result-value" id="resultValue"></div>
 						</div>
 						<div class="result-column">
-							<div class="result-title">Total das Prestações:</div>
+							<div class="result-title">Total Prestações:</div> 
 							<div class="result-value" id="totalPayments"></div>
 						</div>
 						<div class="result-column">
-							<div class="result-title">Total dos Juros:</div>
+							<div class="result-title">Total Juros:</div> 
 							<div class="result-value" id="interestValue"></div>
 						</div>
 					</div>
@@ -99,7 +100,7 @@
         <!-- Modal de Histórico -->
         <div id="historyModal" class="modal">
             <div class="modal-content">
-                <span class="close" id="closeModal">&times;</span>
+                <span class="close" id="closeModal">×</span>
                 <h2>Histórico de Cálculos</h2>
                 <div id="historyContent"></div>
             </div>
@@ -108,7 +109,7 @@
 		<!-- Modal para a tabela de amortização -->
 		<div id="amortizationModal" class="modal">
 			<div class="modal-content">
-				<span class="close" id="closeAmortizationModal">&times;</span>
+				<span class="close" id="closeAmortizationModal">×</span>
 				<h2>Tabela de Amortização</h2>
 				<div id="amortizationContent"></div>
 			</div>
@@ -117,21 +118,19 @@
         <!-- Modal para a calculadora básica -->
         <div id="calculatorModal" class="modal">
             <div class="modal-content calculator-modal">
-                <span class="close" id="closeCalculatorModal">&times;</span>
+                <span class="close" id="closeCalculatorModal">×</span>
                 <div id="calculatorContent">
                     <div class="basic-calculator">
                         <div class="calc-display">
                             <input type="text" id="calcDisplay" readonly>
                         </div>
                         <div class="calc-buttons">
-                            <!-- Primeira linha: C, Backspace, CE, igual -->
                             <div class="calc-row">
                                 <button class="calc-btn calc-btn-clear" data-action="clear">C</button>
                                 <button class="calc-btn calc-btn-op" data-action="backspace">⌫</button>
                                 <button class="calc-btn calc-btn-op" data-action="clearEntry">CE</button>
                                 <button class="calc-btn calc-btn-equal" data-action="equals">=</button>
                             </div>
-                            <!-- Segunda linha: parênteses, %, dividir -->
                             <div class="calc-row">
                                 <button class="calc-btn calc-btn-op" data-action="openParenthesis">(</button>
                                 <button class="calc-btn calc-btn-op" data-action="closeParenthesis">)</button>
@@ -184,7 +183,7 @@
         </div>
 
         <footer>
-            <p>&copy; 2025 Calculadora de Fluxo de Caixa. Todos os direitos reservados.</p>
+            <p>© 2024-2025 Calculadora de Fluxo de Caixa. Todos os direitos reservados.</p>
             <p>Criado por Francisco Campos de Carvalho, ZAP 11 97999-7475, bacharel em matemática e pós em sistemas de informação.</p>
         </footer>
     </div>
