@@ -10,67 +10,14 @@
 
     /* Novas cores suaves sugeridas */
     --soft-blue: #d1e7f3; /* Azul mais claro e suave */
-    --soft-blue-hover: #badec9;
-    --soft-green: #d4edda; /* Verde claro (relacionado ao success) */
+    --soft-blue-hover: #badec9; /* Nota: Provavelmente um erro de digitação, deveria ser um azul mais escuro, ajustado abaixo em .btn-info:hover */
+    --soft-green: #d4edda; /* Verde claro (relacionado ao sucesso) */
     --soft-green-hover: #c3e6cb;
     --soft-orange: #ffe8d6; /* Laranja claro para Limpar/Atenção */
     --soft-orange-hover: #fed7b3;
-    --soft-gray: #e9ecef; /* Cinza claro (alternativa para botões de info) */
+    --soft-gray: #e9ecef; /* Cinza claro (alternativa para botões de informação) */
     --soft-gray-hover: #d8dde1;
 }
-
-/* ... (restante do seu CSS existente até .btn-secondary) ... */
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-}
-.btn-primary:hover {
-    background-color: var(--primary-dark);
-}
-
-.btn-secondary { /* Este será o estilo base para os botões que não são "Calcular" */
-    background-color: var(--secondary-color); /* Mantém o fundo quase branco */
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-}
-.btn-secondary:hover {
-    background-color: #e9ecef; /* Um cinza um pouco mais escuro no hover */
-}
-
-/* Novos estilos para botões específicos com cores suaves */
-.btn-info { /* Para Amortização, Histórico */
-    background-color: var(--soft-blue);
-    color: var(--primary-dark); /* Texto mais escuro para contraste com fundo claro */
-    border: 1px solid #b4cad6; /* Borda sutil um pouco mais escura que o fundo */
-}
-.btn-info:hover {
-    background-color: #b9d7e9; /* Azul um pouco mais escuro no hover */
-    border-color: #a0c2d6;
-}
-
-.btn-tool { /* Para Calculadora */
-    background-color: var(--soft-green);
-    color: #155724; /* Verde escuro para texto (do bootstrap success text color) */
-    border: 1px solid #badbcc; /* Borda sutil */
-}
-.btn-tool:hover {
-    background-color: var(--soft-green-hover);
-    border-color: #a6c9b3;
-}
-
-.btn-action { /* Para Limpar */
-    background-color: var(--soft-orange);
-    color: #721c24; /* Cor de texto de erro/alerta escura */
-    border: 1px solid #f5c6cb; /* Borda sutil (usando a do .error como base) */
-}
-.btn-action:hover {
-    background-color: var(--soft-orange-hover);
-    border-color: #f1b0b7;
-}
-
-
-/* ... (restante do seu CSS) ... */
 
 * {
     box-sizing: border-box;
@@ -94,10 +41,13 @@ body {
 header {
     text-align: center;
     margin-bottom: 30px;
-    padding: 20px 0;
+    padding: 20px 0; /* Padding aplicado verticalmente */
     background-color: white;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 550px; /* Mesma largura máxima do .calculator */
+    margin-left: auto;  /* Centraliza o cabeçalho */
+    margin-right: auto; /* Centraliza o cabeçalho */
 }
 
 h1 {
@@ -110,6 +60,9 @@ h1 {
     border-radius: 10px;
     padding: 30px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 550px; /* Largura máxima do formulário */
+    margin-left: auto;  /* Centraliza o .calculator na página */
+    margin-right: auto; /* Centraliza o .calculator na página */
 }
 
 .destacado {
@@ -122,8 +75,13 @@ h1 {
     position: relative;
 }
 
-label {
-    display: block;
+/* Ajuste do label para melhor alinhamento com o ícone de tooltip - MOVENDO ISSO PARA CIMA PARA ESTILIZAÇÃO GERAL DE LABELS */
+.form-group label, /* Aplica-se a todos os labels dentro de form-group */
+.npv-form-container label, /* Específico para o modal NPV se necessário */
+.mirr-form-container label { /* Específico para o modal MIRR se necessário */
+    display: flex; 
+    align-items: center; 
+    /* Estilos originais do label abaixo */
     margin-bottom: 10px;
     font-weight: 600;
     color: var(--primary-dark);
@@ -170,7 +128,7 @@ input:focus, select:focus {
     box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
 }
 
-select { /* Estilos para o select nativo, caso o custom dropdown falhe ou seja removido */
+select { /* Estilos para o select nativo, caso o dropdown customizado falhe ou seja removido */
     cursor: pointer;
     appearance: none;
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -181,18 +139,20 @@ select { /* Estilos para o select nativo, caso o custom dropdown falhe ou seja r
 }
 
 .button-group {
-    display: flex;
-    gap: 20px;
+    display: grid; /* Alterado para CSS Grid */
+    grid-template-columns: repeat(4, 1fr); /* Cria 4 colunas de largura igual */
+    gap: 10px; /* Mantém o espaçamento entre os botões */
     margin-top: 35px;
-    justify-content: center;
+    /* Propriedades flex removidas (justify-content, flex-wrap) não são mais necessárias aqui
+       e max-width e margens automáticas também foram removidas, pois o grid se ajustará ao .calculator */
 }
 
 button {
-    padding: 14px 30px;
+    padding: 14px 20px; /* Padding ajustado para botões potencialmente menores */
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px; /* Fonte base um pouco menor para botões */
     font-weight: 600;
     transition: all 0.3s;
 }
@@ -201,20 +161,60 @@ button {
     background-color: var(--primary-color);
     color: white;
 }
-
 .btn-primary:hover {
     background-color: var(--primary-dark);
 }
 
-.btn-secondary {
-    background-color: var(--secondary-color);
+.btn-secondary { /* Este será o estilo base para botões que não são "Calcular" */
+    background-color: var(--secondary-color); /* Mantém o fundo quase branco */
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
-
 .btn-secondary:hover {
-    background-color: #e9ecef;
+    background-color: #e9ecef; /* Um cinza um pouco mais escuro ao passar o mouse */
 }
+
+/* Novos estilos para botões específicos com cores suaves */
+.btn-info { /* Para Amortização, Histórico, MIRR */
+    background-color: var(--soft-blue);
+    color: var(--primary-dark); /* Texto mais escuro para contraste com fundo claro */
+    border: 1px solid #b4cad6; /* Borda sutil um pouco mais escura que o fundo */
+}
+.btn-info:hover {
+    background-color: #b9d7e9; /* Azul um pouco mais escuro ao passar o mouse */
+    border-color: #a0c2d6;
+}
+
+.btn-tool { /* Para Calculadora, NPV */
+    background-color: var(--soft-green);
+    color: #155724; /* Verde escuro para texto (da cor de texto de sucesso do bootstrap) */
+    border: 1px solid #badbcc; /* Borda sutil */
+}
+.btn-tool:hover {
+    background-color: var(--soft-green-hover);
+    border-color: #a6c9b3;
+}
+
+.btn-action { /* Para Limpar, Resetar */
+    background-color: var(--soft-orange);
+    color: #721c24; /* Cor de texto de erro/alerta escura */
+    border: 1px solid #f5c6cb; /* Borda sutil (baseada em .error) */
+}
+.btn-action:hover {
+    background-color: var(--soft-orange-hover);
+    border-color: #f1b0b7;
+}
+
+.btn-log { /* Para Histórico se precisar ser diferente de .btn-info */
+    background-color: var(--soft-gray);
+    color: var(--text-color);
+    border: 1px solid #ced4da;
+}
+.btn-log:hover {
+    background-color: var(--soft-gray-hover);
+    border-color: #adb5bd;
+}
+
 
 .result-container {
     margin-top: 35px;
@@ -257,9 +257,9 @@ button {
     display: block;
 }
 
-/* Modal para histórico e amortização */
+/* Ajustes no estilo base do modal para centralização */
 .modal {
-    display: none;
+    display: none; /* Será 'flex' quando ativo */
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -267,19 +267,32 @@ button {
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.5);
+    /* Adicionado para centralização com flex: */
+    align-items: flex-start; /* Alinha o conteúdo ao topo */
+    justify-content: center; /* Centraliza o conteúdo horizontalmente */
+    overflow-y: auto; /* Permite que o próprio modal role se o conteúdo for muito alto */
 }
+
+/* Adicione esta classe via JS ao mostrar um modal */
+.modal.visible { /* Não é estritamente necessário se o JS definir display: flex diretamente */
+    display: flex;
+}
+
 
 .modal-content {
     background-color: white;
-    margin: 5% auto;
+    margin-top: 5vh; 
+    margin-bottom: 5vh; 
     padding: 20px;
     border-radius: 10px;
     width: 80%;
-    max-width: 800px;
-    max-height: 80vh;
-    overflow-y: auto;
+    max-width: 800px; /* Largura máxima padrão */
+    max-height: 90vh; 
+    overflow-y: auto; 
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    position: relative; 
 }
+
 
 .close {
     color: #aaa;
@@ -287,10 +300,14 @@ button {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    line-height: 1; 
+    padding: 0 5px; 
 }
 
-.close:hover {
+.close:hover,
+.close:focus { 
     color: var(--text-color);
+    text-decoration: none;
 }
 
 .history-item {
@@ -314,7 +331,7 @@ button {
     font-size: 18px;
 }
 
-.empty-history {
+.empty-history, .empty-amortization { 
     text-align: center;
     padding: 20px;
     color: #6c757d;
@@ -325,6 +342,13 @@ footer {
     text-align: center;
     color: #6c757d;
     font-size: 14px;
+    padding: 10px 0; /* Padding adicionado como no cabeçalho */
+    background-color: white; /* Opcional: combinar com o fundo do cabeçalho */
+    border-radius: 10px; /* Opcional: combinar com o raio do cabeçalho */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); /* Opcional: sombra sutil */
+    max-width: 550px; /* Mesma largura máxima do .calculator */
+    margin-left: auto;  /* Centraliza o rodapé */
+    margin-right: auto; /* Centraliza o rodapé */
 }
 
 /* Tabela de amortização */
@@ -347,7 +371,7 @@ footer {
     color: var(--primary-dark);
     font-weight: 600;
     position: sticky;
-    top: 0; /* Para o header da tabela ficar fixo no topo do modal-content */
+    top: 0; 
     z-index: 10;
 }
 
@@ -355,12 +379,12 @@ footer {
     background-color: rgba(0,0,0,0.02);
 }
 
-.amortization-table tr:last-child td { /* Linha de totais */
+.amortization-table tr:last-child td { 
     font-weight: bold;
     border-top: 2px solid var(--primary-color);
     background-color: var(--light-gray);
     position: sticky;
-    bottom: 0; /* Para a linha de total ficar fixa no final do modal-content */
+    bottom: 0; 
     z-index: 5;
 }
 
@@ -371,59 +395,44 @@ footer {
     background-color: var(--light-gray);
     border-radius: 5px;
     font-weight: 600;
-    position: sticky;
-    top: 0; /* Ajustado para que o resumo fique fixo NO TOPO do conteúdo scrollável do modal, se o header da tabela estiver abaixo dele */
-    z-index: 15; /* Maior que o z-index do header da tabela */
 }
-/* Se o .amortization-summary estiver dentro do mesmo container que a tabela e a tabela tiver sticky header,
-   o top do summary deve ser 0. Se o header da tabela for sticky e o summary também,
-   o top do header da tabela precisará ser ajustado para depois da altura do summary.
-   Vamos assumir que o summary fica acima da tabela e ambos são sticky em relação ao .modal-content. */
-.amortization-table th {
-    top: 0; /* Se não houver summary sticky acima, ou se o summary não for sticky. */
-    /* Se .amortization-summary for sticky E estiver antes da tabela no mesmo scroll container,
-       o 'top' do 'th' precisaria de um valor para ficar abaixo do summary. Ex: top: 60px;
-       Mas com a estrutura atual, o summary e a tabela estão dentro de #amortizationContent.
-       O sticky é relativo ao ancestral com overflow. No caso, .modal-content.
-       Para ambos serem sticky, o summary aparecerá sobre a tabela.
-       Uma solução é colocar o summary FORA do container da tabela se eles precisarem de stickiness independente,
-       ou ajustar o 'top' do 'th' dinamicamente, o que é complexo.
-       A melhor abordagem é garantir que o summary não sobreponha o header da tabela.
-       Se o summary for sticky top:0, e o header da tabela também, o header da tabela pode ficar escondido.
-       Vamos fazer o header da tabela sticky em relação ao topo do seu container, e o summary também.
-       O header da tabela precisa de um top que o coloque abaixo do summary.
-       Por simplicidade, vou manter o header da tabela sticky no top:0 de seu contexto de scroll.
-       O summary, se também sticky, deve ter um background para não ser transparente sobre a tabela.
-    */
-}
-
 
 .amortization-summary p {
     margin: 5px 0;
 }
 
-.empty-amortization {
-    text-align: center;
-    padding: 20px;
-    color: #6c757d;
-}
 
 @media (max-width: 768px) {
     .container {
         padding: 15px;
     }
     
+    header, footer { /* Garante que o cabeçalho e o rodapé também se adaptem em telas menores */
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
     .calculator {
         padding: 20px;
+        max-width: 100%; /* Permite que a calculadora use a largura total em telas pequenas */
     }
     
     .button-group {
-        flex-direction: column;
+        display: flex; /* Reverte para flexbox para layout de coluna única */
+        flex-direction: column; 
+        align-items: stretch; 
+    }
+    .button-group button {
+        width: 100%; 
+        margin-bottom: 10px; 
+    }
+    .button-group button:last-child {
+        margin-bottom: 0;
     }
     
     .modal-content {
         width: 95%;
-        margin: 10% auto; /* Aumenta margem no mobile para melhor visualização */
     }
     
     .amortization-table {
@@ -439,7 +448,7 @@ footer {
     }
 }
 
-/* Containers para resultados adicionais (já existentes) */
+/* Contêineres para resultados adicionais (já existentes) */
 .interest-value-container {
     margin-top: 15px;
     display: none;
@@ -451,7 +460,7 @@ footer {
 }
 .total-payments-container.visible { display: block; }
 
-/* Layout para resultados (já existentes) */
+/* Layout para resultados (já existente) */
 .result-row {
     display: flex;
     justify-content: space-around;
@@ -465,29 +474,43 @@ footer {
     text-align: center;
 }
 .result-row.three-columns .result-column {
-    flex-basis: 30%; /* Ajuste para caber 3 colunas */
-    min-width: 150px; /* Reduzido para mobile-first */
+    flex-basis: 30%; 
+    min-width: 150px; 
 }
 
-/* ESTILOS MOVIDOS DO JS PARA CÁ (Dropdown Personalizado) */
+@media (max-width: 600px) { 
+    .result-row.three-columns {
+        flex-direction: column;
+        align-items: center;
+    }
+    .result-row.three-columns .result-column {
+        flex-basis: auto; 
+        width: 80%; 
+        min-width: 0;
+        margin-bottom: 15px;
+    }
+}
+
+
+/* ESTILOS MOVIDOS DO JS PARA CÁ (Dropdown Customizado) */
 .custom-dropdown {
     position: relative;
     width: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Herdado de '*' mas explícito aqui */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 }
 
 .dropdown-button {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px; /* Ajustar padding para consistência com inputs */
+    padding: 12px; 
     border: 1px solid var(--border-color);
     border-radius: 5px;
     cursor: pointer;
     background-color: white;
     transition: border-color 0.3s;
-    font-size: 18px; /* Ajustar para consistência com inputs */
-    line-height: 1.5; /* Adicionado para melhor alinhamento vertical do texto */
+    font-size: 18px; 
+    line-height: 1.5; 
 }
 
 .dropdown-button:hover, .dropdown-button:focus {
@@ -498,100 +521,166 @@ footer {
 
 .dropdown-icon {
     margin-left: 8px;
-    color: var(--primary-color); /* Usar variável de cor */
-    font-size: 10px; /* Ajustar tamanho do ícone se necessário */
+    color: var(--primary-color); 
+    font-size: 10px; 
+    transition: transform 0.2s ease-in-out; 
 }
+.dropdown-list.visible .dropdown-icon { 
+    transform: rotate(180deg);
+}
+
 
 .dropdown-list {
     position: absolute;
-    top: 100%; 
+    top: calc(100% + 2px); 
     left: 0;
     width: 100%;
     background-color: white;
     border: 1px solid var(--border-color);
-    border-top: none; /* Para melhor junção visual com o botão */
-    border-radius: 0 0 5px 5px;
+    border-radius: 5px; 
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 100; /* Assegura que fique sobre outros elementos */
-    max-height: 250px; /* Ajustado para não ser muito longo */
+    z-index: 100; 
+    max-height: 250px; 
     overflow-y: auto;
-    padding-top: 3px;  /* Espaçamento interno já existente */
-    padding-bottom: 3px; /* Espaçamento interno já existente */
+    padding: 5px 0;  
+    display: none; 
+}
+.dropdown-list.visible { 
+    display: block;
 }
 
+
 .dropdown-item {
-    padding: 8px 12px !important; /* Aumentado um pouco o padding para melhor clique */
+    padding: 10px 15px !important; 
     cursor: pointer;
     transition: background-color 0.2s;
-    font-size: 16px; /* Ajustar tamanho da fonte */
+    font-size: 16px; 
+    white-space: nowrap; 
 }
 
 .dropdown-item:hover {
-    background-color: var(--light-gray); /* Usar variável */
+    background-color: var(--light-gray); 
 }
 
 .dropdown-item.selected {
-    background-color: #e9f2f7; /* Cor suave para item selecionado */
-    color: var(--primary-dark); /* Usar variável */
-    font-weight: 600; /* Um pouco mais de destaque */
+    background-color: var(--soft-blue); 
+    color: var(--primary-dark); 
+    font-weight: 600; 
 }
 /* FIM DOS ESTILOS DO DROPDOWN */
 
 
-.calculator-modal {
+.calculator-modal { 
     max-width: 340px;
-    padding-top: 15px;
+    padding-top: 15px; 
+}
+
+/* Estilo para o título dentro do modal da calculadora */
+#calculatorContent h2 {
+    text-align: center;
+    font-size: 1.4em; /* Ajuste conforme necessário */
+    color: var(--primary-dark);
+    margin-bottom: 15px;
 }
 
 .calculator-modal .close {
     margin-right: 5px;
-    margin-top: -5px;
+    margin-top: -5px; 
 }
 
 .basic-calculator {
-    background-color: #f8f9fa;
+    background-color: #f8f9fa; 
     border-radius: 10px;
     padding: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); 
 }
 
-.tooltip {
+/* --- ESTILOS DE TOOLTIP --- */
+.tooltip { /* Contêiner para o ícone */
     position: relative;
     display: inline-block;
+    cursor: help;
+    margin-left: 5px; /* Espaço entre o texto do label e o ícone do tooltip */
+    color: var(--primary-color); /* Cor do ícone */
+    font-weight: bold; /* Peso da fonte do ícone */
 }
 
-.tooltip .tooltiptext {
-    visibility: hidden;
-    width: 200px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    margin-left: -100px;
+.tooltip .tooltiptext { /* Estilos comuns para a caixa do tooltip */
+    visibility: hidden; /* Oculto por padrão */
+    background-color: #333; /* Fundo escuro */
+    color: #fff; /* Texto claro */
+    text-align: left; /* Alinha o texto à esquerda */
+    border-radius: 6px; /* Cantos arredondados */
+    padding: 10px; /* Espaçamento interno */
+    font-size: 13px; /* Tamanho da fonte para o conteúdo do tooltip */
+    line-height: 1.5; /* Espaçamento entre linhas */
+    white-space: normal; /* Permite quebra de linha */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25); /* Sombra para profundidade */
+
+    /* Dimensionamento */
+    width: auto; /* Ajusta a largura ao conteúdo */
+    min-width: 180px; /* Largura mínima */
+    max-width: 280px; /* Largura máxima */
+
+    /* Configuração principal de posicionamento */
+    position: absolute; 
+    z-index: 101; /* Acima de outros elementos do modal *dentro de seu próprio contexto de modal* */
+
+    left: 50%; 
+    transform: translateX(-50%); /* Centralização horizontal */
+
+    /* Animação para mostrar/ocultar */
     opacity: 0;
-    transition: opacity 0.3s;
-    font-size: 14px;
+    transition: opacity 0.3s, visibility 0.3s;
 }
 
-.tooltip .tooltiptext::after {
+/* Estilos para tooltip posicionado ACIMA do ícone (quando .tooltiptext-above é adicionado pelo JS) */
+.tooltip .tooltiptext.tooltiptext-above {
+    bottom: calc(100% + 10px); /* Posiciona 10px acima do ícone */
+    top: auto; /* Garante que 'bottom' tenha precedência */
+}
+
+.tooltip .tooltiptext.tooltiptext-above::after { /* Seta para tooltips "acima" */
     content: "";
     position: absolute;
-    top: 100%;
     left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
+    transform: translateX(-50%);
+    top: 100%; /* Seta na parte inferior do corpo do tooltip */
+    border-width: 6px;
     border-style: solid;
-    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+    border-color: #333 transparent transparent transparent; /* Seta apontando para baixo */
 }
 
-input[type="number"].highlighted {
+/* Estilos para tooltip posicionado ABAIXO do ícone (quando .tooltiptext-below é adicionado pelo JS) */
+.tooltip .tooltiptext.tooltiptext-below {
+    top: calc(100% + 10px); /* Posiciona 10px abaixo do ícone */
+    bottom: auto; /* Garante que 'top' tenha precedência */
+}
+
+.tooltip .tooltiptext.tooltiptext-below::after { /* Seta para tooltips "abaixo" */
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 100%; /* Seta na parte superior do corpo do tooltip */
+    top: auto; /* Garante que 'bottom' tenha precedência */
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent #333 transparent; /* Seta apontando para cima */
+}
+
+/* Mostra o tooltip ao passar o mouse (aciona o JS para adicionar classes, e isso o torna visível) */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+/* --- FIM DOS ESTILOS DE TOOLTIP --- */
+
+
+input[type="number"].highlighted,
+input[type="text"].highlighted { 
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.3);
+    box-shadow: 0 0 0 3px rgba(58, 124, 165, 0.3); 
 }
 
 .calc-display {
@@ -601,11 +690,13 @@ input[type="number"].highlighted {
 .calc-display input {
     width: 100%;
     padding: 15px;
-    font-size: 24px;
+    font-size: 28px; 
     text-align: right;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     background-color: white;
+    color: var(--text-color);
+    font-family: 'Consolas', 'Menlo', 'Courier New', monospace; 
 }
 
 .calc-buttons {
@@ -620,14 +711,22 @@ input[type="number"].highlighted {
 }
 
 .calc-btn {
-    padding: 12px 0;
+    padding: 15px 0; 
     font-size: 18px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 600;
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    background-clip: padding-box; 
 }
+.calc-btn:active {
+    transform: translateY(1px); 
+}
+
 
 .calc-btn-num {
     background-color: white;
@@ -636,35 +735,47 @@ input[type="number"].highlighted {
 }
 .calc-btn-num:hover { background-color: #f1f3f5; }
 
-.calc-btn-op {
-    background-color: #e9ecef;
+.calc-btn-op { 
+    background-color: var(--soft-gray);
     color: var(--text-color);
+    border: 1px solid #ced4da;
 }
-.calc-btn-op:hover { background-color: #dee2e6; }
+.calc-btn-op:hover { background-color: var(--soft-gray-hover); }
 
-.calc-btn-clear {
-    background-color: #ff6b6b; /* Cor mais vibrante para clear */
-    color: white;
+.calc-btn-clear, .calc-btn-backspace, .calc-btn-ce { 
+    background-color: var(--soft-orange);
+    color: #721c24; 
     font-weight: bold;
+    border: 1px solid #f5c6cb;
 }
-.calc-btn-clear:hover { background-color: #fa5252; }
+.calc-btn-clear:hover, .calc-btn-backspace:hover, .calc-btn-ce:hover {
+    background-color: var(--soft-orange-hover);
+}
 
 .calc-btn-equal {
     background-color: var(--primary-color);
     color: white;
+    border: 1px solid var(--primary-dark);
 }
 .calc-btn-equal:hover { background-color: var(--primary-dark); }
 
-.calc-btn-const {
-    background-color: #4dabf7; /* Azul diferente para constantes */
-    color: white;
+.calc-btn-const { 
+    background-color: var(--soft-blue);
+    color: var(--primary-dark);
+    border: 1px solid #b4cad6;
 }
-.calc-btn-const:hover { background-color: #339af0; }
+.calc-btn-const:hover { background-color: #b9d7e9; }
 
 .calc-btn-apply {
-    background-color: var(--success-color); /* Verde para aplicar */
+    background-color: var(--success-color); 
     color: white;
-    grid-column: span 4;
+    grid-column: span 4; 
     font-weight: bold;
+    border: 1px solid #1e7e34;
 }
-.calc-btn-apply:hover { background-color: #1e7e34; } /* Verde mais escuro no hover */
+.calc-btn-apply:hover { background-color: #1e7e34; } 
+
+/* Garante que o modal da calculadora esteja sobre outros modais */
+#calculatorModal {
+    z-index: 1050; /* Maior que outros modais (padrão 1000 para .modal) */
+}

@@ -1,103 +1,107 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Fluxo de Caixa</title>
     <link rel="stylesheet" href="calculadora.css">
+    <link rel="stylesheet" href="calculadora_mirr.css">
+    <link rel="stylesheet" href="calculadora_npv.css">
+    <link rel="stylesheet" href="calculadora_irr.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Calculadora Financeira</h1>
-			<p>Calcule valores financeiros de fluxo de caixa com a opção <span class="destacado">"Valor a Calcular:"</span></p>
-			<p>Digite <span class="destacado">Enter ou F1</span> nos campos numéricos para acessar a calculadora.</p>
+			<p>Calcule valores de fluxo de caixa com a opção <span class="destacado">"Valor a Calcular:"</span>.</p>
+			<p>Pressione <span class="destacado">Duplo Clique</span> nos campos numéricos para acessar a calculadora.</p>
         </header>
-        
+
         <main>
             <div class="calculator">
                 <div class="error" id="errorMessage"></div>
-                
+
                 <div class="form-group">
                     <label for="periods">Períodos (n):</label>
                     <div class="input-group">
-                        <input type="number" id="periods" min="0" value="12" title="Pressione Enter ou F1 para acessar a calculadora">
+                        <input type="number" id="periods" min="0" value="12" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                         <button class="btn-toggle" id="multiplyPeriods">12×</button>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="rate">Taxa (i) %:</label>
                     <div class="input-group">
-                        <input type="number" id="rate" step="0.01" value="1.00" title="Pressione Enter ou F1 para acessar a calculadora">
+                        <input type="number" id="rate" step="0.01" value="1.00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                         <button class="btn-toggle" id="divideRate">12÷</button>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="payment">Prestação (PMT):</label>
+                    <label for="payment">Pagamento (PMT):</label>
                     <div class="input-group">
-                        <input type="number" id="payment" value="0.00" step="0.01" title="Pressione Enter ou F1 para acessar a calculadora">
+                        <input type="number" id="payment" value="0.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                         <button class="btn-toggle" id="togglePayment">+/-</button>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="presentValue">Valor Atual (PV):</label>
+                    <label for="presentValue">Valor Presente (PV):</label>
                     <div class="input-group">
-                        <input type="number" id="presentValue" value="1000.00" step="0.01" title="Pressione Enter ou F1 para acessar a calculadora">
+                        <input type="number" id="presentValue" value="1000.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                         <button class="btn-toggle" id="togglePV">+/-</button>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="futureValue">Valor Futuro (FV):</label>
                     <div class="input-group">
-                        <input type="number" id="futureValue" value="0.00" step="0.01" title="Pressione Enter ou F1 para acessar a calculadora">
+                        <input type="number" id="futureValue" value="0.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                         <button class="btn-toggle" id="toggleFV">+/-</button>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-		    <label for="calculateField"><span class="destacado">Valor a Calcular:</span></label>
+                    <label for="calculateField">Valor a Calcular:</label>
                     <select id="calculateField">
                         <option value="periods">Períodos (n)</option>
                         <option value="rate">Taxa (i)</option>
-                        <option value="payment">Prestação (PMT)</option>
-                        <option value="presentValue">Valor Atual (PV)</option>
+                        <option value="payment">Pagamento (PMT)</option>
+                        <option value="presentValue">Valor Presente (PV)</option>
                         <option value="futureValue" selected>Valor Futuro (FV)</option>
                     </select>
-                    <!-- O dropdown personalizado será inserido aqui pelo JS -->
                 </div>
-                
+
 				<div class="button-group">
 					<button class="btn-primary" id="calculateBtn">Calcular</button>
-					<button class="btn-info" id="amortizationBtn">Amortização</button> 
-                    <button class="btn-tool" id="calculatorBtn">Calculadora</button> 
-					<button class="btn-log" id="historyBtn">Histórico</button>    <!-- CLASSE ALTERADA AQUI -->
-					<button class="btn-action" id="clearBtn">Limpar</button>      
+					<button class="btn-info" id="amortizationBtn">Amortização</button>
+                    <button class="btn-tool" id="calculatorBtn">Calculadora</button>
+                    <button class="btn-info" id="irrBtn">TIR</button>
+                    <button class="btn-tool" id="mirrBtn">TIRM</button>
+                    <button class="btn-info" id="adjNpvBtn">VPL (Adj)</button>
+					<button class="btn-tool" id="historyBtn">Histórico</button> 
+					<button class="btn-action" id="clearBtn">Limpar</button>
 				</div>
 
 				<div class="result-container" id="resultContainer">
-					<div class="result-row three-columns"> 
+					<div class="result-row three-columns">
 						<div class="result-column">
 							<div class="result-title">Resultado:</div>
 							<div class="result-value" id="resultValue"></div>
 						</div>
 						<div class="result-column">
-							<div class="result-title">Total Prestações:</div> 
+							<div class="result-title">Total de Pagamentos:</div>
 							<div class="result-value" id="totalPayments"></div>
 						</div>
 						<div class="result-column">
-							<div class="result-title">Total Juros:</div> 
+							<div class="result-title">Total de Juros:</div>
 							<div class="result-value" id="interestValue"></div>
 						</div>
 					</div>
 				</div>
             </div>
         </main>
-        
-        <!-- Modal de Histórico -->
+
         <div id="historyModal" class="modal">
             <div class="modal-content">
                 <span class="close" id="closeModal">×</span>
@@ -105,8 +109,7 @@
                 <div id="historyContent"></div>
             </div>
         </div>
-        
-		<!-- Modal para a tabela de amortização -->
+
 		<div id="amortizationModal" class="modal">
 			<div class="modal-content">
 				<span class="close" id="closeAmortizationModal">×</span>
@@ -115,11 +118,11 @@
 			</div>
 		</div>
 
-        <!-- Modal para a calculadora básica -->
         <div id="calculatorModal" class="modal">
             <div class="modal-content calculator-modal">
                 <span class="close" id="closeCalculatorModal">×</span>
                 <div id="calculatorContent">
+                    <h2>Calculadora</h2>
                     <div class="basic-calculator">
                         <div class="calc-display">
                             <input type="text" id="calcDisplay" readonly>
@@ -182,13 +185,188 @@
             </div>
         </div>
 
+        <div id="mirrModal" class="modal">
+            <div class="modal-content mirr-modal">
+                <span class="close" id="closeMirrModal">×</span>
+                <h2>Taxa Interna de Retorno Modificada (TIRM)</h2>
+                <div id="mirrErrorMessage" class="error"></div>
+                <div class="mirr-form-container">
+                    <div class="form-group">
+                        <label for="mirrInitialInvestment">Investimento Inicial (FC0):
+                            <span class="tooltip">?<span class="tooltiptext">O fluxo de caixa inicial do projeto no período 0. Insira como um valor negativo para um investimento (saída) ou positivo para uma receita inicial (entrada). Este valor faz parte do cálculo da TIRM.</span></span>
+                        </label>
+                        <input type="number" id="mirrInitialInvestment" value="-1000.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="mirrFinancingRate">Taxa de Financiamento (% por período):
+                            <span class="tooltip">?<span class="tooltiptext">A taxa de juros (ex: 5 para 5%) por período na qual se assume que os fluxos de caixa negativos subsequentes (custos, após o FC0) são financiados. Esta taxa é usada para encontrar o valor presente deles no período 0. Se for 0%, eles são efetivamente somados sem desconto de juros. Garanta que o período (anual, mensal) corresponde aos seus períodos de fluxo de caixa.</span></span>
+                        </label>
+                        <input type="number" id="mirrFinancingRate" value="5.0" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="mirrReinvestmentRate">Taxa de Reinvestimento (% por período):
+                            <span class="tooltip">?<span class="tooltiptext">A taxa de juros (ex: 7 para 7%) por período na qual se assume que os fluxos de caixa positivos (incluindo um FC0 positivo e entradas subsequentes) são reinvestidos. Esta taxa é usada para encontrar o valor futuro deles no final do último período de fluxo de caixa (período N). Se for 0%, eles são efetivamente somados sem juros compostos. Garanta que o período corresponde aos seus períodos de fluxo de caixa.</span></span>
+                        </label>
+                        <input type="number" id="mirrReinvestmentRate" value="7.0" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                    </div>
+
+                    <h3>Fluxos de Caixa (após investimento inicial):
+                        <span class="tooltip">?<span class="tooltiptext">Defina a série de fluxos de caixa esperados (FC1, FC2, ...) que ocorrem após o investimento inicial. Para cada valor de fluxo de caixa distinto, especifique por quantos períodos consecutivos (Quantidade) ele se repete. Valores negativos para saídas, positivos para entradas.</span></span>
+                    </h3>
+                    <div class="mirr-cashflows-table-container">
+                        <table id="mirrCashFlowsTable">
+                            <thead>
+                                <tr>
+                                    <th>Valor</th>
+                                    <th>Quantidade (repetições)</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mirrCashFlowsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="button-group mirr-button-group">
+                        <button id="addMirrCashFlowRow" class="btn-secondary mirr-btn-add">Adicionar Linha de Fluxo de Caixa</button>
+                        <button id="calculateMirrBtn" class="btn-primary">Calcular TIRM</button>
+                        <button id="resetMirrBtn" class="btn-action">Resetar</button>
+                    </div>
+
+                    <div id="mirrResultContainer" class="result-container" style="display: none; margin-top: 20px;">
+                        <div class="result-title">Resultado da TIRM:</div>
+                        <div class="result-value" id="mirrResultValue"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="irrModal" class="modal">
+            <div class="modal-content irr-modal">
+                <span class="close" id="closeIrrModal">×</span>
+                <h2>Taxa Interna de Retorno (TIR)</h2>
+                <div id="irrErrorMessage" class="error"></div>
+                <div class="irr-form-container">
+                    <div class="form-group">
+                        <label for="irrInitialInvestment">Investimento Inicial (FC0):
+                            <span class="tooltip">?<span class="tooltiptext">A saída de caixa inicial para o projeto (geralmente um valor negativo, ex: -1000) ou entrada (valor positivo).</span></span>
+                        </label>
+                        <input type="number" id="irrInitialInvestment" value="-1000.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                    </div>
+
+                    <h3>Fluxos de Caixa (FC1, FC2, ...):
+                        <span class="tooltip">?<span class="tooltiptext">Entradas (positivo) ou saídas (negativo) de caixa futuras que ocorrem após o investimento inicial. Para cada valor, especifique por quantos períodos consecutivos (Quantidade) ele se repete.</span></span>
+                    </h3>
+                    <div class="irr-cashflows-table-container">
+                        <table id="irrCashFlowsTable">
+                            <thead>
+                                <tr>
+                                    <th>Valor</th>
+                                    <th>Quantidade (repetições)</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="irrCashFlowsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="button-group irr-button-group">
+                        <button id="addIrrCashFlowRow" class="btn-secondary irr-btn-add">Adicionar Linha de Fluxo de Caixa</button>
+                        <button id="calculateIrrBtn" class="btn-primary">Calcular TIR</button>
+                        <button id="resetIrrBtn" class="btn-action">Resetar</button>
+                    </div>
+
+                    <div id="irrResultContainer" class="result-container" style="display: none; margin-top: 20px;">
+                        <div class="result-title">Resultado da TIR:</div>
+                        <div class="result-value" id="irrResultValue"></div>
+                        <div id="irrWarningMessage" class="warning" style="font-size: 0.9em; margin-top: 10px; color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 10px; border-radius: 5px; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="npvModal" class="modal">
+            <div class="modal-content npv-modal">
+                <span class="close" id="closeNpvModal">×</span>
+                <h2>Valor Presente Líquido / VPL Ajustado</h2>
+                <div id="npvErrorMessage" class="error"></div>
+                <div class="npv-form-container">
+                    <div class="form-group">
+                        <label for="npvInitialInvestment">Investimento Inicial (FC0):
+                            <span class="tooltip">?<span class="tooltiptext">A saída de caixa inicial para o projeto (geralmente um valor negativo, ex: -1000) ou entrada (valor positivo). Este é o fluxo de caixa no período 0.</span></span>
+                        </label>
+                        <input type="number" id="npvInitialInvestment" value="-1000.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="npvDiscountRate">Taxa de Desconto (%):
+                            <span class="tooltip">?<span class="tooltiptext">A taxa de retorno mínima exigida ou o custo de oportunidade do capital.
+- Para VPL Tradicional: Esta é a taxa usada para descontar todos os fluxos de caixa futuros (FC1, FC2,...). Isso ocorre quando a 'Taxa de Financiamento' e a 'Taxa de Reinvestimento' são zero.
+- Para VPL (Adj): Esta taxa é usada para descontar a valor presente o valor futuro dos fluxos de caixa positivos (após terem sido reinvestidos à 'Taxa de Reinvestimento'). Também atua como a taxa padrão para fluxos intermediários se a 'Taxa de Financiamento' ou 'Taxa de Reinvestimento' específicas forem zero.
+Deve ser maior que -100%.</span></span>
+                        </label>
+                        <input type="number" id="npvDiscountRate" value="10.0" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="npvFinancingRate">Taxa de Financiamento (%):
+                            <span class="tooltip">?<span class="tooltiptext">A taxa de juros usada para descontar especificamente os fluxos de caixa negativos intermediários (custos, após o FC0) a valor presente no cálculo do VPL (Adj).
+Reflete o custo de financiar esses desembolsos.
+Se 0% ou não especificada, a 'Taxa de Desconto' principal será usada para esses fluxos negativos no cálculo ajustado.
+Deve ser maior que -100% (se não for zero).</span></span>
+                        </label>
+                        <input type="number" id="npvFinancingRate" value="0.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="npvReinvestmentRate">Taxa de Reinvestimento (%):
+                            <span class="tooltip">?<span class="tooltiptext">A taxa na qual se assume que os fluxos de caixa positivos intermediários (benefícios, após o FC0) são reinvestidos até o final do projeto no cálculo do VPL (Adj).
+Reflete a oportunidade de retorno sobre os lucros gerados.
+Se 0% ou não especificada, a 'Taxa de Desconto' principal será usada para capitalizar esses fluxos positivos no cálculo ajustado.
+Deve ser maior que -100% (se não for zero).</span></span>
+                        </label>
+                        <input type="number" id="npvReinvestmentRate" value="0.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                    </div>
+
+                    <h3>Fluxos de Caixa (FC1, FC2, ...):
+                        <span class="tooltip">?<span class="tooltiptext">Entradas (positivo) ou saídas (negativo) de caixa futuras que ocorrem após o investimento inicial. Para cada valor, especifique por quantos períodos consecutivos (Quantidade) ele se repete.</span></span>
+                    </h3>
+                    <div class="npv-cashflows-table-container">
+                        <table id="npvCashFlowsTable">
+                            <thead>
+                                <tr>
+                                    <th>Valor</th>
+                                    <th>Quantidade (repetições)</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="npvCashFlowsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="button-group npv-button-group">
+                        <button id="addNpvCashFlowRow" class="btn-secondary npv-btn-add">Adicionar Linha de Fluxo de Caixa</button>
+                        <button id="calculateNpvBtn" class="btn-primary">Calcular VPL (Adj)</button>
+                        <button id="resetNpvBtn" class="btn-action">Resetar</button>
+                    </div>
+
+                    <div id="npvResultContainer" class="result-container" style="display: none; margin-top: 20px;">
+                        <div class="result-title" id="npvResultTitle">Resultado do VPL:</div>
+                        <div class="result-value" id="npvResultValue"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer>
             <p>© 2024-2025 Calculadora de Fluxo de Caixa. Todos os direitos reservados.</p>
-            <p>Criado por Francisco Campos de Carvalho, email: fcamposcarvalho@yahoo.com.br, bacharel em matemática e pós em sistemas de informação.</p>
+            <p>Criado por Francisco Campos de Carvalho, email: fcamposcarvalho@yahoo.com.br, Bacharel em Matemática e Pós-Graduado em Sistemas de Informação.</p>
         </footer>
     </div>
-    
-    <script src="calculadora_financeira.js"></script>
+
+    <script src="calculadorafinanceira.js"></script>
     <script src="calculadora.js"></script>
+    <script src="calculadora_mirr.js"></script>
+    <script src="calculadora_irr.js"></script>
+    <script src="calculadora_npv.js"></script>
 </body>
 </html>

@@ -1,15 +1,15 @@
-// calculadora.js - Implementação da calculadora básica
+// calculator.js - Implementação da calculadora básica
 
 document.addEventListener('DOMContentLoaded', function() {
     // -------------------------------------------------------------------
     // DECLARAÇÃO DE VARIÁVEIS DE ESTADO
     // -------------------------------------------------------------------
     let currentInput = '0';
-    let previousInput = ''; 
-    let calculationOperator = ''; 
-    let resetScreen = false; 
-    let expressionMode = false; 
-    let activeInputField = null;
+    let previousInput = '';
+    let calculationOperator = '';
+    let resetScreen = false;
+    let expressionMode = false;
+    let activeInputField = null; // Será usado para saber qual campo preencher
 
     // Constantes matemáticas
     const MATH_CONSTANTS = {
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!calcDisplay) console.warn("AVISO: Display #calcDisplay não encontrado.");
 
 
-    // --- LÓGICA DE ARRASTE DO MODAL ---
+    // --- LÓGICA DE ARRASTAR O MODAL ---
     if (calculatorModal && calculatorModalContentEl && closeCalculatorModal) {
         let isDragging = false;
         let dragOffsetX, dragOffsetY;
@@ -97,11 +97,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.removeEventListener('mouseup', onMouseUp);
         }
     } else {
-        console.warn("Lógica de arraste do modal NÃO configurada devido à falta de elementos.");
+        console.warn("Lógica de arrastar do modal NÃO configurada devido a elementos ausentes.");
     }
-    // --- FIM ARRASTE ---
+    // --- FIM DO ARRASTE ---
 
-    // --- FUNÇÕES HELPER ---
+    // --- FUNÇÕES AUXILIARES ---
     function endsWithConstant(str) {
         for (const c of CONSTANT_VALUES_AS_STRINGS) {
             if (str.endsWith(c)) {
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return false;
     }
-    
+
     function endsWithCompleteFunction(str) {
         for (const funcName of FUNCTION_NAMES) {
             if (str.endsWith(')')) {
@@ -120,12 +120,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const match = str.match(funcCallRegex);
                 if (match) {
                     let openParen = 0;
-                    for (const char of match[1]) { 
+                    for (const char of match[1]) {
                         if (char === '(') openParen++;
                         else if (char === ')') openParen--;
-                        if (openParen < 0) return false; 
+                        if (openParen < 0) return false;
                     }
-                    return openParen === 0; 
+                    return openParen === 0;
                 }
             }
         }
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const lastChar = inputStr.charAt(inputStr.length - 1);
         return (/\d$/.test(lastChar) || lastChar === ')' || endsWithConstant(inputStr) || endsWithCompleteFunction(inputStr));
     }
-    
+
     function getOperatorChar(opAction) {
         switch (opAction) {
             case 'add': return '+';
@@ -152,12 +152,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function _resetCalculationInternalState() {
         previousInput = '';
         calculationOperator = '';
-        resetScreen = true; 
+        resetScreen = true;
         expressionMode = false;
     }
 
     // --- FUNÇÕES PRINCIPAIS DA CALCULADORA ---
-    function openCalculator() {
+    function openCalculator(inputField = null) {
         if (!calculatorModal) {
             console.error("ERRO em openCalculator: calculatorModal é NULO!");
             return;
@@ -165,30 +165,46 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof window.resetCalculatorModalPosition === 'function') {
             window.resetCalculatorModalPosition();
         }
-        calculatorModal.style.display = "block";
-        if (calcDisplay) {
-            calcDisplay.focus();
+        calculatorModal.style.display = "flex";
+
+        if (inputField) {
+            activeInputField = inputField;
+            // Trata a vírgula como ponto decimal se presente no valor do campo de entrada
+            if (inputField.value && inputField.value.trim() !== "" && !isNaN(parseFloat(inputField.value.replace(',', '.')))) {
+                currentInput = inputField.value.replace(',', '.');
+                resetScreen = true;
+                expressionMode = false;
+            } else {
+                resetCalculator();
+            }
         } else {
-            console.warn("Não foi possível focar no calcDisplay porque ele é NULO.");
+            activeInputField = null;
+            resetCalculator();
         }
+
+        updateDisplay();
+        // if (calcDisplay) {
+        //     // calcDisplay.focus(); // Pode roubar o foco, cuidado
+        // }
     }
+
 
     function updateDisplay() {
         if (calcDisplay) {
-            calcDisplay.value = currentInput.replace(/\./g, ',');
+            calcDisplay.value = currentInput;
         }
     }
 
     function inputDigit(digit) {
         if (resetScreen) {
             const lastChar = currentInput.charAt(currentInput.length - 1);
-            if (!'+-×÷^('.includes(lastChar) && currentInput !== 'Erro') { 
+            if (!'+-×÷^('.includes(lastChar) && currentInput !== 'Erro') {
                 if (shouldInsertMultiplication(currentInput)) {
                     currentInput += '×' + digit;
                 } else {
                     currentInput = digit;
                 }
-            } else { 
+            } else {
                 if (currentInput === 'Erro') currentInput = digit;
                 else currentInput += digit;
             }
@@ -219,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         expressionMode = true;
-        resetScreen = true; 
+        resetScreen = true;
     }
 
     function inputParenthesis(parenthesis) {
@@ -237,15 +253,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (openCount > closeCount && !'+-×÷^('.includes(lastChar) && lastChar !== 'Erro') {
                 currentInput += parenthesis;
             } else {
-                // Silenciosamente ignora ')' inválido
-                return; 
+                return; // Não adiciona se for inválido
             }
         }
         resetScreen = false;
     }
-    
-    function calculateFunction(funcKey) { 
-        const displayFunction = funcKey; 
+
+    function calculateFunction(funcKey) {
+        const displayFunction = funcKey; // ex: "sqrt"
         expressionMode = true;
         if (shouldInsertMultiplication(currentInput)) {
             currentInput += '×' + displayFunction + '(';
@@ -256,9 +271,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function inputDecimal() {
+        // Regex para encontrar o último segmento numérico (pode ser complexo devido a funções e parênteses)
         const match = currentInput.match(/[^+\-×÷^()]*$/);
         const lastNumberSegment = match ? match[0] : "";
-        if (lastNumberSegment.includes('.')) return;
+        if (lastNumberSegment.includes('.')) return; // Já tem um decimal
 
         if (resetScreen) {
             const lastChar = currentInput.charAt(currentInput.length - 1);
@@ -268,95 +284,105 @@ document.addEventListener('DOMContentLoaded', function() {
                  if (shouldInsertMultiplication(currentInput)){
                      currentInput += '×0.';
                  } else {
-                     currentInput = '0.';
+                     currentInput = '0.'; // Inicia novo número
                  }
             }
             resetScreen = false;
         } else {
             const lastChar = currentInput.charAt(currentInput.length - 1);
-            if (currentInput === '0') { 
+            if (currentInput === '0') {
                 currentInput = '0.';
-            } else if ('+-×÷^('.includes(lastChar)) { 
+            } else if ('+-×÷^('.includes(lastChar)) { // Se o último caractere for um operador ou parêntese de abertura
                 currentInput += '0.';
-            } else { 
+            } else {
                 currentInput += '.';
             }
         }
-        expressionMode = true; 
+        expressionMode = true;
     }
-    
+
     function handleOperator(operatorAction) {
         const operatorChar = getOperatorChar(operatorAction);
         const lastChar = currentInput.charAt(currentInput.length - 1);
 
-        if (currentInput === 'Erro') return; 
+        if (currentInput === 'Erro') return;
 
+        // Se o último caractere for um operador (não um parêntese de abertura, a menos que seja um menos para negação)
         if ('+-×÷^'.includes(lastChar) && lastChar !== '(') {
+            // Permite '×-' ou '÷-' ou '^-' (multiplicar/dividir/potência por negativo)
             if (operatorChar === '-' && (lastChar === '×' || lastChar === '÷' || lastChar === '^')) {
-                currentInput += operatorChar; 
+                currentInput += operatorChar;
             } else {
+                // Substitui o último operador
                 currentInput = currentInput.slice(0, -1) + operatorChar;
             }
-        } else if (lastChar !== '(' || operatorChar === '-') { 
+        } else if (lastChar !== '(' || operatorChar === '-') { // Permite menos após parêntese de abertura
             currentInput += operatorChar;
         } else {
+            // Não adiciona operador se o último caractere for '(' e o operador não for '-'
             return;
         }
         expressionMode = true;
-        resetScreen = true; 
+        resetScreen = true; // Próxima entrada fará parte do novo termo ou continuará a expressão
     }
 
     function negateValue() {
         if (currentInput === 'Erro') return;
         if (!expressionMode && currentInput !== '0' && !isNaN(parseFloat(currentInput))) {
             currentInput = (parseFloat(currentInput) * -1).toString();
-            updateDisplay(); 
+            updateDisplay();
             return;
         }
+        // Lida com a alternância simples de '0' ou '-'
         if (currentInput === '0') { currentInput = '-'; expressionMode = true; updateDisplay(); return; }
         if (currentInput === '-') { currentInput = '0'; expressionMode = true; updateDisplay(); return; }
 
+        // Negação de expressão mais complexa
         let i = currentInput.length - 1;
-        let nesting = 0; 
-        
+        let nesting = 0; // Para parênteses
+
+        // Encontra o início do último termo
         while (i >= 0) {
             const char = currentInput[i];
             if (char === ')') nesting++;
             else if (char === '(') nesting--;
-            if (nesting === 0 && ('+-×÷^'.includes(char))) { i++; break; }
-            if (nesting < 0) { i++; break; }
+            if (nesting === 0 && ('+-×÷^'.includes(char))) { i++; break; } // Operador encontrado
+            if (nesting < 0) { i++; break; } // Desbalanceado (ex: "func(algo")
             i--;
         }
-        if (i < 0) i = 0; 
+        if (i < 0) i = 0; // Início da string
 
         const prefix = currentInput.substring(0, i);
         let term = currentInput.substring(i);
 
-        if (term.startsWith('-(') && term.endsWith(')')) { 
+        // Alterna a negação
+        if (term.startsWith('-(') && term.endsWith(')')) { // Caso: -(expressão) -> expressão
             term = term.substring(2, term.length - 1);
-        } else if (term.startsWith('-')) { 
+        } else if (term.startsWith('-')) { // Caso: -número -> número
             term = term.substring(1);
-        } else if (term.startsWith('+')) { 
+        } else if (term.startsWith('+')) { // Caso: +número -> -número (embora + geralmente não seja explícito)
             term = '-' + term.substring(1);
-        } else { 
-            if (term.includes('(') || FUNCTION_NAMES.some(fn => term.startsWith(fn)) || term.includes(' ')) { 
-                term = `-(${term})`; 
+        } else { // Caso: número -> -número ou expressão -> -(expressão)
+            // Se o termo for complexo (contém parênteses, função ou espaço), envolve com -(...)
+            if (term.includes('(') || FUNCTION_NAMES.some(fn => term.startsWith(fn)) || term.includes(' ')) {
+                term = `-(${term})`;
             } else {
                 term = '-' + term;
             }
         }
         currentInput = prefix + term;
         expressionMode = true;
-        resetScreen = false; 
+        resetScreen = false; // Permite mais entradas no termo negado, se necessário
     }
 
     function inputPercent() {
         if (currentInput === 'Erro') return;
         const lastChar = currentInput.charAt(currentInput.length - 1);
-        if (/\d$/.test(lastChar) || lastChar === ')') { 
+        if (/\d$/.test(lastChar) || lastChar === ')') { // Só adiciona % após um dígito ou parêntese de fechamento
             currentInput += '%';
             expressionMode = true;
         }
+        // Não define resetScreen, permite mais operações com a porcentagem
     }
 
     function calculateInverse() {
@@ -364,29 +390,31 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentInput === '0') alert('Erro: Divisão por zero!');
             return;
         }
+        // Encontra o início do último termo para aplicar 1/x
         let i = currentInput.length - 1;
         let nesting = 0;
         while (i >= 0) {
             const char = currentInput[i];
             if (char === ')') nesting++; else if (char === '(') nesting--;
             if (nesting === 0 && ('+-×÷^'.includes(char))) { i++; break; }
-            if (nesting < 0) { i++; break;}
+            if (nesting < 0) { i++; break;} // Erro no balanceamento de parênteses antes deste ponto ou início da função
             i--;
         }
-        if (i < 0) i = 0;
+        if (i < 0) i = 0; // Início da string
         const prefix = currentInput.substring(0, i);
         const term = currentInput.substring(i);
         if (term === '0') { alert('Erro: Divisão por zero!'); return; }
 
         currentInput = prefix + `(1÷${term})`;
         expressionMode = true;
-        resetScreen = false;
+        resetScreen = false; // Permite mais operações
     }
-    
+
     function formatResult(value) {
         if (!isFinite(value)) return "Erro";
-        const stringValue = Number(value.toPrecision(12)).toString(); 
-        return parseFloat(stringValue).toString(); 
+        // Usa toPrecision para figuras significativas, depois Number para aparar zeros à direita da parte decimal
+        const stringValue = Number(value.toPrecision(12)).toString(); // 12 figuras significativas
+        return parseFloat(stringValue).toString(); // Garante que seja uma string numérica limpa
     }
 
     function calculate() {
@@ -394,36 +422,56 @@ document.addEventListener('DOMContentLoaded', function() {
         let expressionToEvaluate = currentInput;
 
         try {
+            // Fecha parênteses automaticamente se necessário
             let openCount = (expressionToEvaluate.match(/\(/g) || []).length;
             let closeCount = (expressionToEvaluate.match(/\)/g) || []).length;
             if (openCount > closeCount) {
                 expressionToEvaluate += ')'.repeat(openCount - closeCount);
             }
 
+            // Substitui símbolos de exibição por símbolos avaliáveis em JS
             expressionToEvaluate = expressionToEvaluate
                 .replace(/π/g, `(${MATH_CONSTANTS.pi})`)
-                .replace(/e(?!xp)/g, `(${MATH_CONSTANTS.euler})`) 
+                .replace(/e(?!xp)/g, `(${MATH_CONSTANTS.euler})`) // Lookahead negativo para a função 'exp'
                 .replace(/φ/g, `(${MATH_CONSTANTS.phi})`)
                 .replace(/sqrt\(/g, 'Math.sqrt(')
-                .replace(/log\(/g, 'Math.log10(')
-                .replace(/ln\(/g, 'Math.log(')
+                .replace(/log\(/g, 'Math.log10(') // Log base 10
+                .replace(/ln\(/g, 'Math.log(')   // Log natural
                 .replace(/exp\(/g, 'Math.exp(')
                 .replace(/×/g, '*')
                 .replace(/÷/g, '/')
-                .replace(/\^/g, '**');
+                .replace(/\^/g, '**'); // Exponenciação
 
-            // Tratamento de porcentagem:
-            // Passo 1: Converter todos os "X%" ou "(expr)%" para "(X/100)" ou "((expr)/100)"
+            // Lida com porcentagens:
+            // 1. Simples X% -> X/100
+            // Esta regex precisa ter cuidado para não corresponder a coisas como "log(5)%" incorretamente.
+            // Deve visar números ou expressões entre parênteses seguidas por %
             expressionToEvaluate = expressionToEvaluate.replace(/(\d+\.?\d*|\([\s\S]*?\))%/g, (match, p1) => `(${p1}/100)`);
-            // Passo 2: Transformar "Y + (X/100)" em "Y * (1 + X/100)" e "Y - (X/100)" em "Y * (1 - X/100)"
+
+            // 2. Avançado Y op X% (ex: Y + X%, Y - X%) -> Y * (1 op X/100)
+            // Isso é mais complexo e pode precisar de uma estratégia de análise mais robusta se surgirem muitos casos.
+            // Por enquanto, uma interpretação comum: 100 + 10% = 100 * (1 + 10/100) = 110
+            // Regex para a estrutura Y operador (X/100). Precisa ter cuidado com a ordem das operações.
+            // Esta substituição específica pode ser muito gananciosa ou não cobrir todos os casos bem.
+            // Exemplo: 100+10% -> 100 * (1 + (10/100))
+            // Exemplo: 50-20% -> 50 * (1 - (20/100))
             expressionToEvaluate = expressionToEvaluate.replace(
-                /(\d+\.?\d*|\([\s\S]*?\))\s*([+\-])\s*\((\d+\.?\d*|\([\s\S]*?\))\/100\)/g,
+                /(\d+\.?\d*|\([\s\S]*?\))\s*([+\-])\s*\((\d+\.?\d*|\([\s\S]*?\))\/100\)/g, // Procura por "Y op (X/100)"
                 (match, Y, op, X) => {
+                     // Garante que X é apenas a parte numérica se veio de (número/100) do passo anterior
                      return `${Y} * (1 ${op} (${X}/100))`;
                 }
             );
+            // Um Y + X% mais simples é frequentemente Y + (Y * X/100). A lógica atual é Y * (1 + X/100). Ambas são comuns.
+            // Para consistência, garanta que a lógica de % é a esperada.
+            // A implementação atual: X % Y = (X/100)*Y (se a multiplicação for implícita) ou X% por si só é X/100.
+            // Y + X% (como em adicionar X por cento de Y a Y) é Y + (Y * X/100)
+            // Vamos manter X% = X/100 por enquanto, e % avançado (como Y + X%) é complexo para eval.
+            // A parte `Y * (1 op (X/100))` para `Y op X%` é uma interpretação específica.
+            // A maioria das calculadoras faz `100 + 10%` como `100 + (10/100 * 100) = 110`.
+            // Ou `100 * 10%` como `100 * (10/100) = 10`.
+            // A abordagem `eval` terá dificuldades com % dependente do contexto como "100+10%".
 
-            // console.log("Expressão para eval:", expressionToEvaluate); // Log de depuração opcional
             const result = eval(expressionToEvaluate);
 
             if (result === undefined || result === null || !isFinite(result)) {
@@ -434,128 +482,181 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             currentInput = formatResult(result);
-            _resetCalculationInternalState(); 
+            _resetCalculationInternalState(); // Entrada anterior, operador limpos. Tela pronta para nova entrada.
 
         } catch (error) {
-            console.error("Erro ao avaliar expressão:", error); // Manter este log para erros de eval
+            console.error("Erro ao avaliar a expressão:", error, "Expressão:", expressionToEvaluate); // Registra a expressão
             currentInput = 'Erro';
             updateDisplay();
             _resetCalculationInternalState();
         }
     }
-    
+
     function backspace() {
         if (currentInput === 'Erro') {
             resetCalculator();
             return;
         }
+        // Remove chamadas de função como "sqrt("
         for (const func of FUNCTION_NAMES) {
             if (currentInput.endsWith(func + '(')) {
                 currentInput = currentInput.slice(0, -(func.length + 1));
-                if (currentInput.endsWith('×')) { 
+                // Se era como "5×sqrt(", remove "5×" também, ou apenas "×"
+                if (currentInput.endsWith('×')) { // Verifica se uma multiplicação implícita foi adicionada
                      currentInput = currentInput.slice(0, -1);
                 }
                 if (currentInput === '') currentInput = '0';
+                // updateDisplay(); // updateDisplay é chamado no final do manipulador de botão
                 return;
             }
         }
         currentInput = currentInput.slice(0, -1);
         if (currentInput === '') {
             currentInput = '0';
-            expressionMode = false;
+            expressionMode = false; // Não é mais uma expressão se estiver vazio
         }
+        // Verifica se ainda está em modo de expressão
         if (!/[\+\-\×\÷\^\(\)%]/.test(currentInput) && !FUNCTION_NAMES.some(fn => currentInput.includes(fn))) {
              expressionMode = false;
         }
+        // resetScreen deve permanecer como está, pois o backspace continua a edição atual
     }
 
-    function clearEntry() { 
+    function clearEntry() {
         if (currentInput === 'Erro') {
             resetCalculator();
             return;
         }
+        // Tenta limpar o último número ou segmento inserido
         const match = currentInput.match(/^(.*)([+\-×÷^])([^+\-×÷^(]*)$/);
-        if (match && match[3] !== "") { 
-            currentInput = match[1] + match[2]; 
-        } else if (match && match[3] === "") { 
-            currentInput = match[1]; 
-        } else { 
+        if (match && match[3] !== "") { // Se houver algo após o último operador
+            currentInput = match[1] + match[2]; // Remove o último número
+        } else if (match && match[3] === "") { // Se terminar com um operador
+            currentInput = match[1]; // Remove o operador
+        } else {
+             // Se for uma chamada de função sendo digitada, ex: "sqrt(34"
              for (const func of FUNCTION_NAMES) {
                 if (currentInput.startsWith(func + '(') && currentInput.length > func.length + 1 && currentInput.charAt(currentInput.length - 1) !== '(') {
-                     currentInput = func + '('; 
+                     currentInput = func + '('; // Reseta para apenas "func("
+                     // updateDisplay();
                      return;
-                } else if (currentInput === func + '(') { 
+                } else if (currentInput === func + '(') { // Se for apenas "func("
                      currentInput = '0'; expressionMode = false;
+                     // updateDisplay();
                      return;
                 }
             }
+            currentInput = '0'; // Caso contrário, reseta para 0
+            expressionMode = false;
+        }
+        if (currentInput === "") { // Rede de segurança se as manipulações resultarem em string vazia
             currentInput = '0';
             expressionMode = false;
         }
-        if (currentInput === "") { 
-            currentInput = '0';
-            expressionMode = false;
-        }
-        resetScreen = false; 
+        resetScreen = false; // Permite continuar a expressão
+        // updateDisplay(); // updateDisplay é chamado no final do manipulador de botão
     }
 
     function resetCalculator() {
         currentInput = '0';
-        _resetCalculationInternalState(); 
-        resetScreen = false; 
+        _resetCalculationInternalState(); // Reseta previousInput, operador, expressionMode
+        resetScreen = false; // Explicitamente falso após reset completo
+        // updateDisplay(); // updateDisplay é chamado no final do manipulador de botão
     }
 
     function applyValueToField() {
         if (activeInputField) {
-            if (currentInput === 'Erro') { 
-                calculatorModal.style.display = "none";
+            if (currentInput === 'Erro') {
+                if (calculatorModal) calculatorModal.style.display = "none";
                 activeInputField.focus();
+                activeInputField = null; // Limpa campo ativo
                 return;
             }
+            // Se em modo de expressão e ainda não resetado (ou seja, resultado de cálculo anterior), calcula primeiro
             if (expressionMode && /[\+\-\×\÷\^\(\)%]/.test(currentInput) && !resetScreen) {
-                calculate(); 
-                if (currentInput === 'Erro') { 
-                     calculatorModal.style.display = "none";
+                calculate(); // Calcula a expressão
+                if (currentInput === 'Erro') { // Se o cálculo resultar em erro
+                     if (calculatorModal) calculatorModal.style.display = "none";
                      activeInputField.focus();
+                     activeInputField = null; // Limpa campo ativo
                      return;
                 }
             }
-            activeInputField.value = currentInput.replace(',', '.'); 
+            
+            let valueToApply = currentInput;
+            const numericValue = parseFloat(currentInput.replace(',', '.')); // Lida com vírgula como decimal
+            if (!isNaN(numericValue)) {
+                // --- INÍCIO DA MODIFICAÇÃO ---
+
+                // Lista de IDs dos campos que devem receber 6 casas decimais.
+                const rateFieldIds = [
+                    'rate',
+                    'mirrFinancingRate',
+                    'mirrReinvestmentRate',
+                    'npvDiscountRate',
+                    'npvFinancingRate',
+                    'npvReinvestmentRate'
+                ];
+
+                // Verifica o tipo de campo para aplicar a formatação correta.
+                if (rateFieldIds.includes(activeInputField.id)) {
+                    // Aplica 6 casas decimais para os campos de taxa.
+                    valueToApply = numericValue.toFixed(6);
+                } else if (activeInputField.id === 'periods') {
+                    // Arredonda para o inteiro mais próximo para o campo de períodos.
+                    valueToApply = Math.round(numericValue);
+                }
+                 else {
+                    // Mantém 2 casas decimais para todos os outros campos (valores, etc.).
+                    valueToApply = numericValue.toFixed(2);
+                }
+                // --- FIM DA MODIFICAÇÃO ---
+            }
+
+            activeInputField.value = valueToApply;
             if (calculatorModal) calculatorModal.style.display = "none";
-            const event = new Event('input', { bubbles: true });
-            activeInputField.dispatchEvent(event);
-            activeInputField.focus();
+            
+            // Dispara eventos para garantir que quaisquer ouvintes no campo de entrada sejam acionados
+            activeInputField.dispatchEvent(new Event('input', { bubbles: true }));
+            activeInputField.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            activeInputField.focus(); // Retorna o foco para o campo
+            activeInputField = null; // Limpa campo ativo
+        } else {
+            if (calculatorModal) calculatorModal.style.display = "none"; // Apenas fecha se não houver campo ativo
         }
     }
 
     function handleKeyboardInput(event) {
-        if (event.ctrlKey || event.metaKey) return; 
-        
+        if (calculatorModal && calculatorModal.style.display !== 'flex') return; // Apenas quando o modal está visível
+        if (event.ctrlKey || event.metaKey) return; // Ignora atalhos como Ctrl+C
+
         if (currentInput === 'Erro') {
             if (event.key === 'Escape') {
                 if (calculatorModal) calculatorModal.style.display = "none";
+                activeInputField = null;
             } else if (event.key === 'Backspace' || event.key.toLowerCase() === 'c' || event.key === 'Delete') {
                 event.preventDefault();
                 resetCalculator();
                 updateDisplay();
-            } else if (/[0-9]/.test(event.key)) { 
+            } else if (/[0-9]/.test(event.key)) { // Permite iniciar um novo número após o erro
                 event.preventDefault();
-                currentInput = event.key; 
-                resetScreen = false; 
-                expressionMode = false; 
+                currentInput = event.key;
+                resetScreen = false;
+                expressionMode = false; // Começando do zero
                 updateDisplay();
             } else {
-                event.preventDefault(); 
+                event.preventDefault(); // Bloqueia outras teclas se em estado de erro
             }
             return;
         }
-        
-        // Apenas previne o default se a tecla for tratada
-        let keyHandled = true;
+
+        let keyHandled = true; // Assume que a tecla será tratada
         switch (event.key) {
             case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
                 inputDigit(event.key); break;
-            case '.': case ',': inputDecimal(); break;
+            case '.': inputDecimal(); break;
+            case ',': inputDecimal(); break; // Trata vírgula como ponto decimal
             case '+': handleOperator('add'); break;
             case '-': handleOperator('subtract'); break;
             case '*': handleOperator('multiply'); break;
@@ -565,35 +666,144 @@ document.addEventListener('DOMContentLoaded', function() {
             case '(': inputParenthesis('('); break;
             case ')': inputParenthesis(')'); break;
             case 'Enter': case '=': calculate(); break;
-            case 'Escape': if (calculatorModal) calculatorModal.style.display = "none"; break;
+            case 'Escape':
+                if (calculatorModal) calculatorModal.style.display = "none";
+                activeInputField = null; // Limpa campo ativo no Escape
+                break;
             case 'Backspace': backspace(); break;
-            case 'Delete': resetCalculator(); break;
+            case 'Delete': resetCalculator(); break; // Ou clearEntry() dependendo do comportamento desejado
             default:
-                if (event.key.toLowerCase() === 'c') { // 'c' para Clear
+                if (event.key.toLowerCase() === 'c') { // 'c' para Limpar
                     resetCalculator();
-                } else if (event.key.toLowerCase() === 'p' && !event.shiftKey) {
+                } else if (event.key.toLowerCase() === 'p' && !event.shiftKey) { // 'p' para Pi
                     inputConstant('pi');
-                } else if (event.key.toLowerCase() === 'e' && !event.shiftKey && !event.altKey) {
+                } else if (event.key.toLowerCase() === 'e' && !event.shiftKey && !event.altKey) { // 'e' para número de Euler
                     inputConstant('euler');
                 } else {
-                    keyHandled = false; // Tecla não tratada
+                    keyHandled = false; // Tecla não foi tratada por esta lógica
                 }
                 break;
         }
 
         if(keyHandled) {
-            event.preventDefault();
+            event.preventDefault(); // Previne ação padrão se a tecla foi tratada
             updateDisplay();
         }
     }
+    
+    // --- Ouvinte para KEYDOWN em campos de entrada numéricos (F1) ---
+    // Esta função é exposta globalmente para que outros scripts (MIRR, NPV, IRR) possam usá-la.
+    window.handleNumericInputKeydown = function(event) {
+        // Permite teclas de navegação, exclusão e edição padrão sem abrir a calculadora
+        const allowedNonFunctionKeys = [
+            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            'Delete', 'Backspace', 'Tab', 'Home', 'End',
+            'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'ContextMenu', 
+            'PageUp', 'PageDown', 'Insert', 'F5', 'F12', 'Enter' 
+        ];
+        // Permite teclas F específicas (não F1 para abrir a calculadora)
+        if (allowedNonFunctionKeys.includes(event.key) || (event.key.startsWith('F') && event.key !== 'F1')) {
+            return; // Não abre a calculadora para estas teclas
+        }
 
-    // --- INICIALIZAÇÃO E EVENTOS GERAIS (continuação) ---
-    updateDisplay(); 
-    setupNumericInputs(); 
+        if (event.key === 'F1') {
+            event.preventDefault(); // Previne ação padrão (ex: ajuda do navegador no F1)
+            event.stopPropagation(); // Impede que o evento se propague
+            
+            const inputField = event.target; // O campo de entrada que acionou o evento
+            openCalculator(inputField); // Abre a calculadora, passando o campo
+        }
+    };
+
+    // --- Ouvinte para DBLCLICK em campos de entrada numéricos ---
+    // Esta função é exposta globalmente.
+    window.handleNumericInputDblClick = function(event) {
+        event.preventDefault();
+        const inputField = event.target;
+        openCalculator(inputField);
+    };
+
+
+    function setupNumericInputs() {
+        // Seletor mais robusto para encontrar todos os inputs numéricos relevantes
+        const numericInputs = document.querySelectorAll(
+            'input[type="number"], input#periods, input#rate, input#payment, input#presentValue, input#futureValue, input#mirrInitialInvestment, input#mirrFinancingRate, input#mirrReinvestmentRate, input#irrInitialInvestment, input#npvInitialInvestment, input#npvOverallDiscountRate, input#npvFinancingRate, input#npvReinvestmentRate'
+        ); // Inclui IDs específicos e inputs dinâmicos se já estiverem no DOM
+           // Inputs dinâmicos nas tabelas MIRR/NPV/IRR são tratados quando as linhas são adicionadas.
+
+        numericInputs.forEach(input => {
+            // Garante ouvintes novos se esta função for chamada várias vezes
+            input.removeEventListener('keydown', window.handleNumericInputKeydown);
+            input.addEventListener('keydown', window.handleNumericInputKeydown);
+            
+            input.removeEventListener('dblclick', window.handleNumericInputDblClick);
+            input.addEventListener('dblclick', window.handleNumericInputDblClick);
+            
+            input.title = "Pressione F1 ou duplo clique para acessar a calculadora"; 
+            
+            input.removeEventListener('focus', highlightInput);
+            input.removeEventListener('blur', unhighlightInput);
+            input.addEventListener('focus', highlightInput);
+            input.addEventListener('blur', unhighlightInput);
+        });
+    }
+    
+    function highlightInput() { this.classList.add('highlighted'); }
+    function unhighlightInput() { this.classList.remove('highlighted'); }
+
+    // --- INICIALIZAÇÃO E EVENTOS GERAIS ---
+    updateDisplay(); // Atualização inicial do display
+    setupNumericInputs(); // Configura ouvintes para inputs existentes
+
+    // OBSERVADOR PARA INPUTS ADICIONADOS DINAMICAMENTE (ex. tabelas MIRR/NPV/IRR)
+    const observer = new MutationObserver(mutationsList => {
+        for (const mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Verifica se o próprio nó é um input ou contém inputs
+                        const inputs = [];
+                        if (node.matches('input[type="number"]')) {
+                            inputs.push(node);
+                        } else {
+                            inputs.push(...node.querySelectorAll('input[type="number"]'));
+                        }
+                        
+                        inputs.forEach(input => {
+                            // Verifica se é um dos inputs controlados dinamicamente com base na classe ou pai
+                            if (input.classList.contains('mirr-cash-flow-amount') || 
+                                input.classList.contains('mirr-cash-flow-quantity') ||
+                                input.classList.contains('irr-cash-flow-amount') || 
+                                input.classList.contains('irr-cash-flow-quantity') ||
+                                input.classList.contains('npv-cash-flow-amount') ||
+                                input.classList.contains('npv-cash-flow-quantity')) {
+                                
+                                input.removeEventListener('keydown', window.handleNumericInputKeydown);
+                                input.addEventListener('keydown', window.handleNumericInputKeydown);
+                                input.removeEventListener('dblclick', window.handleNumericInputDblClick);
+                                input.addEventListener('dblclick', window.handleNumericInputDblClick);
+                                input.title = "Pressione F1 ou duplo clique para acessar a calculadora";
+
+                                input.removeEventListener('focus', highlightInput);
+                                input.removeEventListener('blur', unhighlightInput);
+                                input.addEventListener('focus', highlightInput);
+                                input.addEventListener('blur', unhighlightInput);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    });
+
+    // Começa a observar o corpo do documento e sua sub-árvore para nós adicionados
+    const mainAppContainer = document.querySelector('.container') || document.body;
+    observer.observe(mainAppContainer, { childList: true, subtree: true });
+
 
     if (calculatorBtn) {
         calculatorBtn.addEventListener('click', function() {
-            openCalculator();
+            openCalculator(); // Abre a calculadora sem um campo específico
         });
     }
 
@@ -601,88 +811,70 @@ document.addEventListener('DOMContentLoaded', function() {
         closeCalculatorModal.addEventListener('click', function() {
             if (calculatorModal) {
                 calculatorModal.style.display = "none";
+                activeInputField = null; // Limpa o campo ativo ao fechar manualmente
             }
         });
     }
     
-    window.addEventListener('click', function(event) {
-        if (calculatorModal && event.target === calculatorModal) { 
-            calculatorModal.style.display = "none";
-        }
-    });
-    
+    // Adiciona ouvinte de teclado ao próprio modal, não ao documento,
+    // para evitar conflitos quando o modal não está visível.
+    if (calculatorModal) {
+        calculatorModal.addEventListener('keydown', handleKeyboardInput);
+    }
+
+
     if (calcButtons && calcButtons.length > 0) {
         calcButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const action = button.dataset.action;
-                const buttonValue = button.textContent;
-                
+                const buttonValue = button.textContent; // ex: '7', '+', 'log'
+
                 if (currentInput === 'Erro' && action !== 'clear' && action !== 'backspace' && action !== 'clearEntry') {
+                     // Só permite funções de limpeza se em estado de erro
                      return;
                 }
-                if (action === 'clearEntry' && currentInput === 'Erro'){ // Permitir CE limpar Erro
+                // Tratamento especial para CE em estado de Erro
+                if (action === 'clearEntry' && currentInput === 'Erro'){
                     resetCalculator();
                     updateDisplay();
                     return;
                 }
 
-                if (!action) { 
+                if (!action) { // É um botão de dígito
                     inputDigit(buttonValue);
-                } else { 
+                } else {
                     switch(action) {
+                        // Operadores
                         case 'add': case 'subtract': case 'multiply': case 'divide': case 'power': handleOperator(action); break;
+                        // Parênteses & Porcentagem
                         case 'openParenthesis': inputParenthesis('('); break;
                         case 'closeParenthesis': inputParenthesis(')'); break;
                         case 'percent': inputPercent(); break;
+                        // Funções
                         case 'sqrt': calculateFunction('sqrt'); break;
                         case 'inverse': calculateInverse(); break;
                         case 'negate': negateValue(); break;
-                        case 'log': calculateFunction('log'); break;
-                        case 'ln': calculateFunction('ln'); break;
-                        case 'exp': calculateFunction('exp'); break;
+                        case 'log': calculateFunction('log'); break; // Base 10
+                        case 'ln': calculateFunction('ln'); break;   // Natural
+                        case 'exp': calculateFunction('exp'); break; // e^x
+                        // Constantes
                         case 'pi': inputConstant('pi'); break;
                         case 'euler': inputConstant('euler'); break;
                         case 'phi': inputConstant('phi'); break;
+                        // Decimal & Limpar
                         case 'decimal': inputDecimal(); break;
-                        case 'clear': resetCalculator(); break;
-                        case 'clearEntry': clearEntry(); break;
+                        case 'clear': resetCalculator(); break; // AC
+                        case 'clearEntry': clearEntry(); break; // CE
                         case 'backspace': backspace(); break;
+                        // Igual & Aplicar
                         case 'equals': calculate(); break;
                         case 'apply': applyValueToField(); break;
                     }
                 }
-                updateDisplay(); 
+                updateDisplay(); // Atualiza o display após cada ação
             });
         });
     } else {
-        console.warn("Botões da calculadora (.calc-btn) não encontrados ou array vazio.");
-    }
-
-    function setupNumericInputs() {
-        const numericInputs = document.querySelectorAll('input[type="number"]'); 
-        numericInputs.forEach(input => {
-            input.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter' || event.key === 'F1') {
-                    event.preventDefault(); 
-                    event.stopPropagation(); 
-                    activeInputField = this;
-                    openCalculator();
-                    
-                    if (this.value && this.value.trim() !== "" && parseFloat(this.value.replace(',', '.')) !== 0) {
-                        currentInput = this.value.replace(',', '.');
-                        resetScreen = true; 
-                        expressionMode = false; 
-                    } else {
-                        resetCalculator(); 
-                    }
-                    updateDisplay();
-                }
-            });
-            if (!input.title) {
-                input.title = "Pressione Enter ou F1 para acessar a calculadora";
-            }
-            input.addEventListener('focus', function() { this.classList.add('highlighted'); });
-            input.addEventListener('blur', function() { this.classList.remove('highlighted'); });
-        });
+        console.warn("Botões da calculadora (.calc-btn) não encontrados ou o array está vazio.");
     }
 });

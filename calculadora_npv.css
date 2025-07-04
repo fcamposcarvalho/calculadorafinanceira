@@ -1,0 +1,169 @@
+/* calculator_npv.css */
+
+.npv-modal {
+    max-width: 650px; /* Pode ser ajustado se o conteúdo crescer */
+    font-size: 1.05em; /* Aumento da fonte base para o modal NPV */
+}
+
+.npv-modal h2 {
+    font-size: 1.5em; /* Ajuste o tamanho do título do modal se necessário */
+    margin-bottom: 20px;
+    text-align: center; /* Centraliza o título do modal */
+    color: var(--primary-dark); /* Usa a cor escura primária para o título */
+}
+
+.npv-form-container .form-group {
+    margin-bottom: 18px; /* Mais espaço entre os grupos */
+}
+
+.npv-form-container label {
+    font-size: 1.1em; /* Aumento para os rótulos (relativo ao font-size do .npv-modal) */
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--primary-dark); /* Cor consistente para os rótulos */
+}
+
+.npv-form-container input[type="number"] {
+    font-size: 1em; /* Inputs seguem o aumento base */
+    padding: 12px; /* Mais preenchimento para inputs maiores */
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+}
+.npv-form-container input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
+}
+
+
+.npv-form-container h3 {
+    font-size: 1.2em; /* Aumento para o subtítulo "Fluxos de Caixa" */
+    margin-top: 25px;
+    margin-bottom: 10px;
+    color: var(--primary-dark); /* Cor consistente para subtítulos */
+    text-align: center;
+}
+
+.npv-cashflows-table-container {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+#npvCashFlowsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#npvCashFlowsTable th,
+#npvCashFlowsTable td {
+    padding: 10px; /* Mais preenchimento nas células da tabela */
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.95em; /* Leve ajuste se o texto da tabela ficar muito grande */
+}
+
+#npvCashFlowsTable th {
+    background-color: var(--light-gray);
+    color: var(--primary-dark);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 1em; /* Cabeçalho da tabela segue o aumento */
+    text-align: center;
+}
+
+#npvCashFlowsTable td input[type="number"] {
+    width: 90%;
+    padding: 8px; /* Preenchimento para inputs na tabela */
+    font-size: 1em; /* Inputs na tabela seguem o aumento */
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+}
+#npvCashFlowsTable td input[type="number"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px rgba(58, 124, 165, 0.2);
+}
+
+
+#npvCashFlowsTable .npv-remove-cf-btn { /* Classe renomeada */
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+    padding: 6px 10px; /* Preenchimento para o botão de remover */
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em; /* Fonte para o botão de remover */
+    transition: background-color 0.3s;
+}
+#npvCashFlowsTable .npv-remove-cf-btn:hover { /* Classe renomeada */
+    background-color: #c82333;
+}
+
+
+.npv-btn-add { /* Classe renomeada */
+    /* width: auto; -- Será gerenciado efetivamente por .npv-button-group > button */
+    padding: 12px 25px;
+    font-size: 1em;
+    background-color: var(--soft-green);
+    color: var(--primary-dark);
+    border: 1px solid #a6c9b3;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.npv-btn-add:hover { /* Classe renomeada */
+    background-color: var(--soft-green-hover);
+    border-color: #8dbf9d;
+}
+
+.npv-button-group { /* Classe renomeada */
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column; /* Empilha os botões verticalmente */
+    align-items: center;   /* Centraliza os botões horizontalmente */
+    gap: 22px;             /* Aumenta o espaço vertical entre os botões */
+}
+
+/* Estilização comum para todos os botões dentro do grupo para largura e layout */
+.npv-button-group > button {
+    width: 100%; /* Botões ocuparão a largura de seu conteúdo ou serão limitados pela largura máxima */
+    max-width: 320px; /* Largura máxima para os botões */
+    box-sizing: border-box; /* Inclui preenchimento e borda na largura e altura total do elemento */
+}
+
+/* Estilos para .btn-primary e .btn-action quando dentro de .npv-button-group */
+.npv-button-group .btn-primary,
+.npv-button-group .btn-action { /* Aplica estilização semelhante ao botão de reset */
+    padding: 12px 30px; /* Mantém o preenchimento original */
+    font-size: 1.05em;  /* Mantém o tamanho da fonte original */
+}
+
+
+#npvErrorMessage { /* ID renomeado */
+    margin-bottom: 20px;
+    font-size: 1em; /* Fonte para a mensagem de erro */
+}
+
+#npvResultContainer { /* ID renomeado, herdando de .result-container mas com ajustes específicos */
+    padding: 20px;
+    margin-top: 25px;
+}
+
+#npvResultContainer .result-title { /* ID renomeado */
+    font-size: 1.2em; /* Título do resultado */
+    color: var(--primary-dark);
+}
+#npvResultContainer .result-value { /* ID renomeado */
+    font-size: 1.6em; /* Valor do resultado NPV */
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.npv-modal.modal-content {
+    overflow-y: auto;
+}
