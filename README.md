@@ -2,7 +2,7 @@
 
 Uma calculadora avançada de fluxo de caixa para realizar cálculos financeiros como valor presente (VP), valor futuro (VF), parcelas (PMT), taxas de juros e períodos.
 
-![Calculadora Financeira](https://github.com/fcamposcarvalho/financialcalculator//raw/main/financialcalculator.png)
+![Calculadora Financeira](https://github.com/fcamposcarvalho/calculadorafinanceira//raw/main/calculadorafinanceira.png)
 
 ## Funcionalidades
 
@@ -33,13 +33,13 @@ Uma calculadora avançada de fluxo de caixa para realizar cálculos financeiros 
 
 1. Clone este repositório:
 ```
-git clone https://github.com/your-user/financecalculator.git
+git clone https://github.com/your-user/calculadorafinanceira.git
 ```
 2. Abra o arquivo `index.html` em qualquer navegador moderno
 
 ### Uso Online
 
-Acesse a calculadora diretamente em: [https://fcamposcarvalho.github.io/financialcalculator](https://fcamposcarvalho.github.io/financialcalculator)
+Acesse a calculadora diretamente em: [https://fcamposcarvalho.github.io/calculadorafinanceira](https://fcamposcarvalho.github.io/calculadorafinanceira)
 
 ### Integração em Outros Sites
 
