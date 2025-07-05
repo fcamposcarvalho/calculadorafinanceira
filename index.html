@@ -302,14 +302,14 @@
                         <label for="npvDiscountRate">Taxa de Desconto (%):
                             <span class="tooltip">?<span class="tooltiptext">A taxa de retorno mínima exigida ou o custo de oportunidade do capital.
 - Para VPL Tradicional: Esta é a taxa usada para descontar todos os fluxos de caixa futuros (FC1, FC2,...). Isso ocorre quando a 'Taxa de Financiamento' e a 'Taxa de Reinvestimento' são zero.
-- Para VPL (Adj): Esta taxa é usada para descontar a valor presente o valor futuro dos fluxos de caixa positivos (após terem sido reinvestidos à 'Taxa de Reinvestimento'). Também atua como a taxa padrão para fluxos intermediários se a 'Taxa de Financiamento' ou 'Taxa de Reinvestimento' específicas forem zero.
+- Para VPL (Ajustado): Esta taxa é usada para descontar a valor presente o valor futuro dos fluxos de caixa positivos (após terem sido reinvestidos à 'Taxa de Reinvestimento'). Também atua como a taxa padrão para fluxos intermediários se a 'Taxa de Financiamento' ou 'Taxa de Reinvestimento' específicas forem zero.
 Deve ser maior que -100%.</span></span>
                         </label>
                         <input type="number" id="npvDiscountRate" value="10.0" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
                     <div class="form-group">
                         <label for="npvFinancingRate">Taxa de Financiamento (%):
-                            <span class="tooltip">?<span class="tooltiptext">A taxa de juros usada para descontar especificamente os fluxos de caixa negativos intermediários (custos, após o FC0) a valor presente no cálculo do VPL (Adj).
+                            <span class="tooltip">?<span class="tooltiptext">A taxa de juros usada para descontar especificamente os fluxos de caixa negativos intermediários (custos, após o FC0) a valor presente no cálculo do VPL (Ajustado).
 Reflete o custo de financiar esses desembolsos.
 Se 0% ou não especificada, a 'Taxa de Desconto' principal será usada para esses fluxos negativos no cálculo ajustado.
 Deve ser maior que -100% (se não for zero).</span></span>
@@ -318,7 +318,7 @@ Deve ser maior que -100% (se não for zero).</span></span>
                     </div>
                     <div class="form-group">
                         <label for="npvReinvestmentRate">Taxa de Reinvestimento (%):
-                            <span class="tooltip">?<span class="tooltiptext">A taxa na qual se assume que os fluxos de caixa positivos intermediários (benefícios, após o FC0) são reinvestidos até o final do projeto no cálculo do VPL (Adj).
+                            <span class="tooltip">?<span class="tooltiptext">A taxa na qual se assume que os fluxos de caixa positivos intermediários (benefícios, após o FC0) são reinvestidos até o final do projeto no cálculo do VPL (Ajustado).
 Reflete a oportunidade de retorno sobre os lucros gerados.
 Se 0% ou não especificada, a 'Taxa de Desconto' principal será usada para capitalizar esses fluxos positivos no cálculo ajustado.
 Deve ser maior que -100% (se não for zero).</span></span>
@@ -345,7 +345,7 @@ Deve ser maior que -100% (se não for zero).</span></span>
 
                     <div class="button-group npv-button-group">
                         <button id="addNpvCashFlowRow" class="btn-secondary npv-btn-add">Adicionar Linha de Fluxo de Caixa</button>
-                        <button id="calculateNpvBtn" class="btn-primary">Calcular VPL (Adj)</button>
+                        <button id="calculateNpvBtn" class="btn-primary">Calcular VPL (Ajustado)</button>
                         <button id="resetNpvBtn" class="btn-action">Resetar</button>
                     </div>
 
