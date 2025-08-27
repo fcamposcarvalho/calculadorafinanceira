@@ -1,9 +1,10 @@
 // financialcalculator.js
 
-// Função para calcular corretamente o total de juros
+// Função para calcular corretamente o total de juros para Tabela Price
 function calcularTotalJuros(n, i, pmt, pv) {
     if (i === 0) {
-        return 0;
+        // Para taxa zero, a soma dos pagamentos menos o principal é o juro (que será zero)
+        return Math.abs(pmt * n) - Math.abs(pv);
     }
     const principal = Math.abs(pv);
     let saldo = principal; 
@@ -28,7 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const futureValueInput = document.getElementById('futureValue');
     const calculateFieldSelect = document.getElementById('calculateField');
     const calculateBtn = document.getElementById('calculateBtn');
-    const amortizationBtn = document.getElementById('amortizationBtn');
+    const amortizationPriceBtn = document.getElementById('amortizationPriceBtn'); // CORRIGIDO
+    const amortizationSacBtn = document.getElementById('amortizationSacBtn');     // NOVO
     const historyBtn = document.getElementById('historyBtn');
     const clearBtn = document.getElementById('clearBtn');
     const resultContainer = document.getElementById('resultContainer');
@@ -51,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const amortizationModal = document.getElementById('amortizationModal');
     const closeAmortizationModalBtn = document.getElementById('closeAmortizationModal');
     const amortizationContent = document.getElementById('amortizationContent');
+    const amortizationModalTitle = document.getElementById('amortizationModalTitle'); // NOVO
     const amortizationModalContentEl = amortizationModal ? amortizationModal.querySelector('.modal-content') : null; // Para o drag
 
 
@@ -89,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const dropdownList = document.createElement('div');
         dropdownList.className = 'dropdown-list';
-        // dropdownList.style.display = 'none'; // Controlado pela classe 'visible' agora
 
         for (let i = 0; i < originalSelect.options.length; i++) {
             const option = originalSelect.options[i];
@@ -110,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 dropdownButton.appendChild(dropdownIcon); 
                 dropdownList.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('selected'));
                 dropdownItem.classList.add('selected');
-                dropdownList.classList.remove('visible'); // Alterna visibilidade
+                dropdownList.classList.remove('visible');
                 localStorage.setItem('lastCalculateField', option.value);
             });
             dropdownList.appendChild(dropdownItem);
@@ -118,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         dropdownButton.addEventListener('click', function(e) {
             e.stopPropagation();
-            dropdownList.classList.toggle('visible'); // Alterna visibilidade
+            dropdownList.classList.toggle('visible');
         });
         
         document.addEventListener('click', () => { dropdownList.classList.remove('visible'); });
@@ -130,9 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (calculateFieldSelect) {
-        calculateFieldSelect.addEventListener('change', function(event) {
-            // console.log("Campo de cálculo alterado via select original:", calculateFieldSelect.value);
-        });
         if (localStorage.getItem('lastCalculateField')) {
             calculateFieldSelect.value = localStorage.getItem('lastCalculateField');
             const customDropdownButton = calculateFieldSelect.parentNode.querySelector('.dropdown-button');
@@ -157,7 +156,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (multiplyPeriodsBtn) multiplyPeriodsBtn.addEventListener('click', multiplyPeriods);
     if (divideRateBtn) divideRateBtn.addEventListener('click', divideRate);
     if (calculateBtn) calculateBtn.addEventListener('click', calculate);
-    if (amortizationBtn) amortizationBtn.addEventListener('click', showAmortizationTable);
+    if (amortizationPriceBtn) amortizationPriceBtn.addEventListener('click', showPriceAmortizationTable); // ATUALIZADO
+    if (amortizationSacBtn) amortizationSacBtn.addEventListener('click', showSacAmortizationTable); // NOVO
     if (historyBtn) historyBtn.addEventListener('click', showHistory);
     if (clearBtn) clearBtn.addEventListener('click', clearFields);
     
@@ -171,7 +171,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (paymentInput) paymentInput.addEventListener('input', adjustSignals);
     if (presentValueInput) presentValueInput.addEventListener('input', adjustSignals);
-
 
     function multiplyPeriods() {
         try {
@@ -258,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!historyContent || !historyModal) return;
 
         const historyModalContentEl = historyModal.querySelector('.modal-content');
-        if (historyModalContentEl) { // Reseta a posição para centralização
+        if (historyModalContentEl) {
             historyModalContentEl.style.position = '';
             historyModalContentEl.style.left = '';
             historyModalContentEl.style.top = '';
@@ -282,11 +281,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 historyContent.appendChild(historyItem);
             });
         }
-        historyModal.style.display = "flex"; // MODIFICADO para flex
+        historyModal.style.display = "flex";
     }
-    
-    function showAmortizationTable() {
+
+    // FUNÇÃO ATUALIZADA para Tabela PRICE
+    function showPriceAmortizationTable() {
         if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
+
+        if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (PRICE)";
+
         try {
             hideError();
             const n = parseInt(periodsInput.value) || 0;
@@ -296,102 +299,166 @@ document.addEventListener('DOMContentLoaded', function() {
             const fv = parseFloat(futureValueInput.value) || 0;
 
             if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
-            if (i <= 0 && pmtVal !== 0) throw new Error("A taxa deve ser maior que zero para amortização com pagamentos.");
-            if (i === 0 && pmtVal === 0 && pv === -fv) {
-                 amortizationContent.innerHTML = '<div class="empty-amortization">Com taxa zero e sem pagamentos, a amortização é direta. O saldo final será igual ao valor futuro.</div>';
-                 if (amortizationModalContentEl) { // Reseta posição
-                    amortizationModalContentEl.style.position = '';
-                    amortizationModalContentEl.style.left = '';
-                    amortizationModalContentEl.style.top = '';
-                 }
-                 amortizationModal.style.display = "flex"; // MODIFICADO para flex
-                 return;
-            }
-             if (i === 0 && pmtVal === 0 && pv !== -fv) {
-                throw new Error("Com taxa e pagamento zero, o PV deve ser o oposto do FV para uma amortização válida.");
-            }
-
-            const amortizationData = calculateAmortizationTable(n, i, pmtVal, pv, fv);
+            
+            const amortizationData = calculatePriceAmortizationTable(n, i, pmtVal, pv, fv);
             
             if (amortizationData.length === 0) {
                 amortizationContent.innerHTML = '<div class="empty-amortization">Não foi possível gerar a tabela com os valores fornecidos. Verifique se o PMT é suficiente para cobrir os juros.</div>';
             } else {
-                const totalPrincipal = amortizationData.reduce((sum, row) => sum + row.principalPayment, 0);
-                const totalInterest = amortizationData.reduce((sum, row) => sum + row.interestPayment, 0);
-                const totalPayment = amortizationData.reduce((sum, row) => sum + row.payment, 0);
-                
-                let tableHTML = `
-                    <div class="amortization-summary">
-                        <p>Total de Pagamentos: ${formatCurrency(totalPayment)}</p>
-                        <p>Total de Principal Amortizado: ${formatCurrency(totalPrincipal)}</p>
-                        <p>Total de Juros Pagos/Recebidos: ${formatCurrency(totalInterest)}</p>
-                    </div>
-                    <table class="amortization-table">
-                        <thead><tr><th>Período</th><th>Pagamento</th><th>Juros</th><th>Juros Acum.</th><th>Principal</th><th>Principal Acum.</th><th>Saldo Final</th></tr></thead>
-                        <tbody>`;
-                amortizationData.forEach(row => {
-                    tableHTML += `<tr>
-                        <td>${row.period}</td><td>${formatCurrency(row.payment)}</td><td>${formatCurrency(row.interestPayment)}</td>
-                        <td>${formatCurrency(row.cumulativeInterest)}</td><td>${formatCurrency(row.principalPayment)}</td>
-                        <td>${formatCurrency(row.cumulativePrincipal)}</td><td>${formatCurrency(row.endingBalance)}</td>
-                    </tr>`;
-                });
-                tableHTML += `<tr><td>Total</td><td>${formatCurrency(totalPayment)}</td><td>${formatCurrency(totalInterest)}</td><td>-</td><td>${formatCurrency(totalPrincipal)}</td><td>-</td><td>-</td></tr></tbody></table>`;
-                amortizationContent.innerHTML = tableHTML;
+                displayAmortizationData(amortizationData);
             }
-            // Resetar posição para centralização via flexbox antes de exibir
+
             if (amortizationModalContentEl) {
                 amortizationModalContentEl.style.position = '';
                 amortizationModalContentEl.style.left = '';
                 amortizationModalContentEl.style.top = '';
             }
-            amortizationModal.style.display = "flex"; // MODIFICADO para flex
+            amortizationModal.style.display = "flex";
         } catch (error) {
-            showError("Amortização: " + error.message);
+            showError("Amortização (PRICE): " + error.message);
+        }
+    }
+
+    // NOVA FUNÇÃO para Tabela SAC
+    function showSacAmortizationTable() {
+        if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
+
+        if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (SAC)";
+
+        try {
+            hideError();
+            const n = parseInt(periodsInput.value) || 0;
+            const i = (parseFloat(rateInput.value) || 0) / 100;
+            const pv = parseFloat(presentValueInput.value) || 0;
+
+            if (pv === 0 || pv < 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para o cálculo SAC.");
+            if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
+            if (i < 0) throw new Error("A taxa de juros não pode ser negativa.");
+
+            const amortizationData = calculateSacAmortizationTable(n, i, pv);
+            
+            if (amortizationData.length === 0) {
+                amortizationContent.innerHTML = '<div class="empty-amortization">Não foi possível gerar a tabela SAC com os valores fornecidos.</div>';
+            } else {
+                displayAmortizationData(amortizationData);
+            }
+            
+            if (amortizationModalContentEl) {
+                amortizationModalContentEl.style.position = '';
+                amortizationModalContentEl.style.left = '';
+                amortizationModalContentEl.style.top = '';
+            }
+            amortizationModal.style.display = "flex";
+        } catch (error) {
+            showError("Amortização (SAC): " + error.message);
         }
     }
     
-    function calculateAmortizationTable(n, i, pmt, pv, fv) {
+    // NOVA FUNÇÃO para exibir os dados da tabela (reutilizada por PRICE e SAC)
+    function displayAmortizationData(amortizationData) {
+        const totalPrincipal = amortizationData.reduce((sum, row) => sum + row.principalPayment, 0);
+        const totalInterest = amortizationData.reduce((sum, row) => sum + row.interestPayment, 0);
+        const totalPayment = amortizationData.reduce((sum, row) => sum + row.payment, 0);
+        
+        let tableHTML = `
+            <div class="amortization-summary">
+                <p>Total de Pagamentos: ${formatCurrency(totalPayment)}</p>
+                <p>Total de Principal Amortizado: ${formatCurrency(totalPrincipal)}</p>
+                <p>Total de Juros Pagos: ${formatCurrency(totalInterest)}</p>
+            </div>
+            <table class="amortization-table">
+                <thead><tr><th>Período</th><th>Pagamento (PMT)</th><th>Juros</th><th>Juros Acum.</th><th>Amortização</th><th>Amort. Acum.</th><th>Saldo Devedor</th></tr></thead>
+                <tbody>`;
+        amortizationData.forEach(row => {
+            tableHTML += `<tr>
+                <td>${row.period}</td><td>${formatCurrency(row.payment)}</td><td>${formatCurrency(row.interestPayment)}</td>
+                <td>${formatCurrency(row.cumulativeInterest)}</td><td>${formatCurrency(row.principalPayment)}</td>
+                <td>${formatCurrency(row.cumulativePrincipal)}</td><td>${formatCurrency(row.endingBalance)}</td>
+            </tr>`;
+        });
+        tableHTML += `<tr><td><strong>Total</strong></td><td><strong>${formatCurrency(totalPayment)}</strong></td><td><strong>${formatCurrency(totalInterest)}</strong></td><td>-</td><td><strong>${formatCurrency(totalPrincipal)}</strong></td><td>-</td><td>-</td></tr></tbody></table>`;
+        amortizationContent.innerHTML = tableHTML;
+    }
+
+    // FUNÇÃO ATUALIZADA para cálculo da Tabela PRICE
+    function calculatePriceAmortizationTable(n, i, pmt, pv, fv) {
         let pmtCalculado = pmt;
-        if (pmtCalculado === 0 && pv !== 0 && fv !== 0 && i > 0) {
-            if (i !== 0) {
-                 pmtCalculado = calculatePayment(n, i, pv, fv);
-            } else if (pv + fv !== 0) { 
-                pmtCalculado = -(pv + fv) / n; 
-            }
+        if (pmtCalculado >= 0 && pv < 0) pmtCalculado = -pmtCalculado;
+        if (pv > 0) pv = -pv; 
+
+
+        if (pmtCalculado === 0 && pv !== 0 && i > 0) {
+            pmtCalculado = calculatePayment(n, i, pv, fv);
+        } else if (i === 0 && n > 0) {
+            pmtCalculado = -(pv + fv) / n;
         }
 
         const table = [];
-        let currentBalance = pv;
+        let currentBalance = -pv; // Saldo devedor positivo
         let cumulativeInterest = 0;
         let cumulativePrincipal = 0;
 
         for (let period = 1; period <= n; period++) {
             const interestForPeriod = currentBalance * i;
-            let principalPaymentPart;
-            if (i === 0) { 
-                principalPaymentPart = -pmtCalculado;
-            } else {
-                 principalPaymentPart = -pmtCalculado - interestForPeriod;
+            const principalPaymentPart = Math.abs(pmtCalculado) - interestForPeriod;
+
+            cumulativeInterest += interestForPeriod;
+            cumulativePrincipal += principalPaymentPart;
+            currentBalance -= principalPaymentPart;
+
+            if (period === n && Math.abs(currentBalance) > 0.01) {
+                // Ajuste no último período para garantir que o saldo zere
+                const adjustment = currentBalance;
+                currentBalance = 0;
+                cumulativePrincipal += adjustment; 
             }
+             if (period === n) currentBalance = 0;
 
-            const displayPmt = Math.abs(pmtCalculado);
-            const displayInterest = Math.abs(interestForPeriod);
-            const displayPrincipal = Math.abs(principalPaymentPart);
-
-            cumulativeInterest += displayInterest;
-            cumulativePrincipal += displayPrincipal;
-            
-            currentBalance += interestForPeriod + pmtCalculado;
 
             table.push({
                 period: period,
-                payment: displayPmt,
-                interestPayment: displayInterest,
+                payment: Math.abs(pmtCalculado),
+                interestPayment: interestForPeriod,
                 cumulativeInterest: cumulativeInterest,
-                principalPayment: displayPrincipal,
+                principalPayment: principalPaymentPart,
                 cumulativePrincipal: cumulativePrincipal,
                 endingBalance: currentBalance 
+            });
+        }
+        return table;
+    }
+
+    // NOVA FUNÇÃO para cálculo da Tabela SAC
+    function calculateSacAmortizationTable(n, i, pv) {
+        const table = [];
+        const principalAmount = Math.abs(pv);
+        if (n <= 0) return table;
+
+        const constantAmortization = principalAmount / n;
+        let currentBalance = principalAmount;
+        let cumulativeInterest = 0;
+        let cumulativePrincipal = 0;
+
+        for (let period = 1; period <= n; period++) {
+            const interestForPeriod = currentBalance * i;
+            const paymentForPeriod = constantAmortization + interestForPeriod;
+            
+            cumulativeInterest += interestForPeriod;
+            cumulativePrincipal += constantAmortization;
+            currentBalance -= constantAmortization;
+
+            if (period === n && Math.abs(currentBalance) < 0.01) {
+                currentBalance = 0;
+            }
+
+            table.push({
+                period: period,
+                payment: paymentForPeriod,
+                interestPayment: interestForPeriod,
+                cumulativeInterest: cumulativeInterest,
+                principalPayment: constantAmortization,
+                cumulativePrincipal: cumulativePrincipal,
+                endingBalance: currentBalance
             });
         }
         return table;
@@ -400,14 +467,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function getLabelForField(field) {
         const labels = { periods: 'Períodos (n)', rate: 'Taxa (i)', payment: 'Pagamento (PMT)', presentValue: 'Valor Presente (PV)', futureValue: 'Valor Futuro (FV)'};
         return labels[field] || field;
-    }
-    
-    function adjustSignalsBeforeCalculation() {
-        return {
-            pmt: parseFloat(paymentInput.value) || 0,
-            pv: parseFloat(presentValueInput.value) || 0,
-            fv: parseFloat(futureValueInput.value) || 0
-        };
     }
     
     function calculate() {
@@ -429,7 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'periods':
                     originalValueInput = n_val;
                     result = calculatePeriods(i_val, pmt_val, pv_val, fv_val);
-                    if (result !== null) periodsInput.value = Math.round(result);
+                    if (result !== null) periodsInput.value = Math.ceil(result);
                     break;
                 case 'rate':
                     originalValueInput = parseFloat(rateInput.value);
@@ -493,8 +552,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (fieldToCalculate !== 'periods' && (n <= 0 || !Number.isInteger(n))) {
             throw new Error("O número de períodos (n) deve ser um inteiro positivo.");
         }
-        // Nenhuma validação para taxa negativa aqui, permite cálculos teóricos.
-
         if (fieldToCalculate === 'periods') {
             if (i === 0) { 
                 if (pmt === 0) { 
@@ -505,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     else if (pmt > 0 && pv + fv > 0) throw new Error("Conflito de sinais: com PMT positivo (entrada), PV+FV (saída líquida) não pode ser positivo.");
                     else if (pmt < 0 && pv + fv < 0) throw new Error("Conflito de sinais: com PMT negativo (saída), PV+FV (entrada líquida) não pode ser negativo.");
                 }
-            } // Nenhuma validação extensiva para i != 0, pois métodos numéricos podem lidar com mais casos.
+            }
         }
         return true;
     }
@@ -557,10 +614,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return pmt;
     }
     
-// financialcalculator.js
-
-// ... (código anterior do arquivo)
-
     function calculatePeriods(i, pmt, pv, fv) { // NPER
         const cacheKey = `N_${i}_${pmt}_${pv}_${fv}`;
         if (calculationCache[cacheKey] !== undefined) return calculationCache[cacheKey];
@@ -572,22 +625,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 return 0; 
             }
             n = -(pv + fv) / pmt;
-        } else { // i não é 0
+        } else { 
             if (pmt === 0) {
-                // --- INÍCIO DA MODIFICAÇÃO ---
                 if (pv === 0) {
                     throw new Error("Com PMT zero, o Valor Presente (PV) não pode ser zero.");
                 }
                 const ratio = -fv / pv;
                 if (ratio <= 0) {
-                    // Mensagem de erro melhorada, explicando a convenção de sinais.
                     throw new Error("Com PMT zero, o Valor Presente (PV) e o Valor Futuro (FV) devem ter sinais opostos.");
                 }
                 if (1 + i <= 0) {
                     throw new Error("A taxa não pode ser -100% ou menor para este cálculo.");
                 }
                 n = Math.log(ratio) / Math.log(1 + i);
-                // --- FIM DA MODIFICAÇÃO ---
             } else {
                 const term1_val = pmt + fv * i;
                 const term2_val = pmt + pv * i;
@@ -600,29 +650,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if (n < 0 || !isFinite(n)) {
             return calculatePeriodsBinarySearch(i, pmt, pv, fv);
         }
-        cacheKey[cacheKey] = n;
+        calculationCache[cacheKey] = n;
         return n;
     }
 
-    function calculatePeriodsBinarySearch(rate, pmt, pv, fv, maxN = 10000, tolerance = 1e-6) {
+    function calculatePeriodsBinarySearch(rate, pmt, pv, fv, maxN = 1200, tolerance = 1e-6) {
         if (rate === 0) { 
             if (pmt === 0) return (pv + fv === 0) ? 0 : null; 
             if (pmt !== 0) return -(pv + fv) / pmt;
             return null;
         }
 
-        // Determina se a função FV(n) é crescente ou decrescente em relação a n.
         const trend_term = pmt + pv * rate;
         const isIncreasing = (rate > 0) ? (trend_term < 0) : (trend_term > 0);
 
-        // Calcula os valores nos limites do intervalo de busca [0, maxN]
         const fv_at_n0 = calculateFutureValue(0, rate, pmt, pv);
         const fv_at_nMax = calculateFutureValue(maxN, rate, pmt, pv);
 
-        // Verifica se uma solução é matematicamente possível dentro do intervalo.
         if (isIncreasing) {
             if (fv < fv_at_n0 || fv > fv_at_nMax) return null;
-        } else { // se for decrescente
+        } else {
             if (fv > fv_at_n0 || fv < fv_at_nMax) return null;
         }
 
@@ -634,39 +681,23 @@ document.addEventListener('DOMContentLoaded', function() {
             const fv_calculated = calculateFutureValue(n, rate, pmt, pv);
             
             if (isIncreasing) {
-                if (fv_calculated < fv) {
-                    low = n;
-                } else {
-                    high = n;
-                }
-            } else { // Decrescente
-                if (fv_calculated > fv) {
-                    low = n;
-                } else {
-                    high = n;
-                }
+                if (fv_calculated < fv) { low = n; } else { high = n; }
+            } else {
+                if (fv_calculated > fv) { low = n; } else { high = n; }
             }
             
-            // Interrompe o loop se a convergência for alcançada.
             if (high - low < tolerance) break;
         }
         
-        // Após o loop, 'low' e 'high' definem um intervalo muito pequeno contendo a raiz.
         const final_n = (low + high) / 2;
         const final_fv = calculateFutureValue(final_n, rate, pmt, pv);
 
-        // A tolerância anterior (ex: 1e-5) era muito restrita para valores grandes de FV.
-        // Uma tolerância absoluta de 0.01 (um centavo) é mais prática para cálculos financeiros.
         if (Math.abs(final_fv - fv) < 0.01) { 
             return final_n;
         }
         
-        return null; // Retorna nulo se nenhuma solução for encontrada com a precisão desejada.
+        return null;
     }
-
- // financialcalculator.js
-
-// ... (código anterior do arquivo)
 
     function calculateRate(n, pmt, pv, fv) { // Retorna a taxa em %
         const cacheKey = `I_${n}_${pmt}_${pv}_${fv}`;
@@ -675,21 +706,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (n <= 0) throw new Error("O NPER deve ser positivo para calcular a TAXA.");
 
         if (pmt === 0) {
-            // --- INÍCIO DA MODIFICAÇÃO ---
             if (pv === 0) {
                 throw new Error("Com PMT zero, o Valor Presente (PV) não pode ser zero para calcular a Taxa.");
             }
-            // Adiciona a verificação de sinais opostos, que é a causa do erro.
             if (Math.sign(pv) === Math.sign(fv)) {
                 throw new Error("Com PMT zero, o Valor Presente (PV) e o Valor Futuro (FV) devem ter sinais opostos.");
             }
-            // --- FIM DA MODIFICAÇÃO ---
 
             let base = -fv / pv;
-            // A verificação de raiz par de número negativo se torna desnecessária com a validação de sinais acima,
-            // pois 'base' será sempre positiva.
-
-            // Caso especial: se fv é 0, a taxa que zera o valor é -100%.
             if (base === 0 && fv === 0) return -100; 
 
             const rate = (Math.pow(base, 1 / n) - 1) * 100;
@@ -741,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (rateGuess < -0.999) rateGuess = -0.999; 
             if (rateGuess > 10) rateGuess = 10; 
         }
-        throw new Error("Não foi possível convergir para uma taxa de juros. Verifique os valores de entrada ou tente uma estimativa inicial diferente, se possível.");
+        throw new Error("Não foi possível convergir para uma taxa de juros. Verifique os valores de entrada.");
     }
 
     // --- LÓGICA DE ARRASTAR PARA O MODAL DE AMORTIZAÇÃO ---
@@ -806,6 +830,4 @@ document.addEventListener('DOMContentLoaded', function() {
             document.removeEventListener('mouseup', onAmortizationMouseUp);
         }
     }
-    // --- FIM DA LÓGICA DE ARRASTAR PARA O MODAL DE AMORTIZAÇÃO ---
-
 });

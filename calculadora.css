@@ -139,12 +139,10 @@ select { /* Estilos para o select nativo, caso o dropdown customizado falhe ou s
 }
 
 .button-group {
-    display: grid; /* Alterado para CSS Grid */
-    grid-template-columns: repeat(4, 1fr); /* Cria 4 colunas de largura igual */
-    gap: 10px; /* Mantém o espaçamento entre os botões */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* ALTERADO de 4 para 3 colunas */
+    gap: 10px;
     margin-top: 35px;
-    /* Propriedades flex removidas (justify-content, flex-wrap) não são mais necessárias aqui
-       e max-width e margens automáticas também foram removidas, pois o grid se ajustará ao .calculator */
 }
 
 button {
@@ -419,16 +417,8 @@ footer {
     }
     
     .button-group {
-        display: flex; /* Reverte para flexbox para layout de coluna única */
-        flex-direction: column; 
-        align-items: stretch; 
-    }
-    .button-group button {
-        width: 100%; 
-        margin-bottom: 10px; 
-    }
-    .button-group button:last-child {
-        margin-bottom: 0;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Em telas menores, 2 colunas */
     }
     
     .modal-content {
