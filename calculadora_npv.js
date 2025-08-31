@@ -1,6 +1,7 @@
 // calculator_npv.js
 document.addEventListener('DOMContentLoaded', function() {
-    // A função parseFinancialInput já está disponível globalmente.
+    // As funções parseFinancialInput e formatCurrency agora são globais
+    // e estão disponíveis para este script.
 
     const adjNpvBtn = document.getElementById('adjNpvBtn');
     const npvModal = document.getElementById('npvModal');
@@ -310,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (isInteractiveElement) return;
 
-            isDragging = true;
+            isNpvDragging = true;
             if (getComputedStyle(npvModalContent).position !== 'absolute') {
                 const rect = npvModalContent.getBoundingClientRect();
                 npvModalContent.style.position = 'absolute';

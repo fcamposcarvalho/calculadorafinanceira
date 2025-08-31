@@ -1,6 +1,14 @@
 // financialcalculator.js
 
-// --- FUNÇÃO HELPER APRIMORADA ---
+// --- FUNÇÕES HELPER GLOBAIS ---
+// Movidas para fora do DOMContentLoaded para serem acessíveis a outros scripts.
+
+/**
+ * Converte uma string de valor (que pode usar . ou ,) para um número de ponto flutuante.
+ * Trata inteligentemente os padrões brasileiro (1.000,50) e internacional (1,000.50).
+ * @param {string} valueString A string a ser convertida.
+ * @returns {number} O número convertido.
+ */
 function parseFinancialInput(valueString) {
     if (typeof valueString !== 'string' || valueString.trim() === '') {
         return 0;
@@ -22,7 +30,17 @@ function parseFinancialInput(valueString) {
 
     return parseFloat(sanitizedString) || 0;
 }
-// --- FIM DA FUNÇÃO APRIMORADA ---
+
+/**
+ * Formata um número para o padrão de moeda brasileiro (BRL).
+ * @param {number} value O número a ser formatado.
+ * @returns {string} A string formatada como moeda.
+ */
+function formatCurrency(value) {
+    if (isNaN(value) || value === null) return "R$ 0,00"; 
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+}
+// --- FIM DAS FUNÇÕES HELPER GLOBAIS ---
 
 
 // Função para calcular corretamente o total de juros para Tabela Price
@@ -262,11 +280,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (interestValueElement) interestValueElement.textContent = '';
         if (totalPaymentsElement) totalPaymentsElement.textContent = '';
-    }
-    
-    function formatCurrency(value) {
-        if (isNaN(value) || value === null) return "0,00"; 
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     }
     
     function formatRate(value) {
