@@ -338,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
         historyModal.style.display = "flex";
     }
 
+    // --- INÍCIO DA CORREÇÃO ---
     function showPriceAmortizationTable() {
         if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
 
@@ -347,12 +348,14 @@ document.addEventListener('DOMContentLoaded', function() {
             hideError();
             const n = parseInt(periodsInput.value) || 0;
             const i = parseFinancialInput(rateInput.value) / 100;
-            let pmtVal = parseFinancialInput(paymentInput.value);
             const pv = parseFinancialInput(presentValueInput.value);
             const fv = parseFinancialInput(futureValueInput.value);
 
             if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
             if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para a amortização.");
+            
+            // Força o recálculo do PMT com os valores atuais, ignorando o campo de input.
+            const pmtVal = calculatePayment(n, i, -Math.abs(pv), fv);
 
             const amortizationData = calculatePriceAmortizationTable(n, i, pmtVal, pv, fv);
             
@@ -372,6 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showError("Amortização (PRICE): " + error.message);
         }
     }
+    // --- FIM DA CORREÇÃO ---
 
     function showSacAmortizationTable() {
         if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
