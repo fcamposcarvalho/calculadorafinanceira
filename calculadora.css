@@ -97,16 +97,32 @@ h1 {
     color: white;
     border: none;
     padding: 10px 15px;
-    margin-left: 10px;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.3s;
+    /* A margem será controlada pelo grupo quando houver mais de um botão */
+    margin-left: 10px;
 }
 
 .btn-toggle:hover {
     background-color: var(--primary-dark);
 }
+
+/* --- NOVOS ESTILOS PARA O GRUPO DE BOTÕES DE TAXA --- */
+.rate-button-group {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Espaçamento entre os botões */
+    margin-left: 10px; /* Margem do grupo todo */
+}
+
+/* Remove a margem individual dos botões quando estão dentro do grupo */
+.rate-button-group .btn-toggle {
+    margin-left: 0;
+}
+/* --- FIM DOS NOVOS ESTILOS --- */
+
 
 input, select {
     width: 100%;
@@ -401,9 +417,7 @@ footer {
         max-width: 100%;
     }
     
-    /* --- ALTERAÇÃO PRINCIPAL AQUI --- */
     .button-group {
-        /* Define que haverá apenas 1 coluna, forçando os botões a se empilharem */
         grid-template-columns: 1fr;
     }
     

@@ -1,5 +1,7 @@
 // calculator_mirr.js
 document.addEventListener('DOMContentLoaded', function() {
+    // A função parseFinancialInput já está disponível globalmente.
+
     const mirrBtn = document.getElementById('mirrBtn');
     const mirrModal = document.getElementById('mirrModal');
     const closeMirrModalBtn = document.getElementById('closeMirrModal');
@@ -41,7 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const cellAmount = row.insertCell();
         const amountInput = document.createElement('input');
-        amountInput.type = 'number';
+        amountInput.type = 'text';
+        amountInput.inputMode = 'decimal';
         amountInput.className = 'mirr-cash-flow-amount';
         amountInput.value = amount;
         amountInput.placeholder = "ex: 200 ou -150";
@@ -74,10 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.addEventListener('keydown', window.handleNumericInputKeydown);
                 input.removeEventListener('dblclick', window.handleNumericInputDblClick);
                 input.addEventListener('dblclick', window.handleNumericInputDblClick);
-                input.title = "Pressione Enter, F1, Espaço ou duplo clique para acessar a calculadora";
+                input.title = "Pressione F1 ou duplo clique para acessar a calculadora";
             });
-        } else {
-            console.warn('Funções globais para input numérico não definidas. A calculadora pode não abrir corretamente nos campos dinâmicos da TIRM.');
         }
     }
 
@@ -85,16 +86,16 @@ document.addEventListener('DOMContentLoaded', function() {
         hideMirrError();
         if (mirrResultContainer) mirrResultContainer.style.display = 'none';
 
-        if(initialInvestmentInput) initialInvestmentInput.value = "-1000.00";
-        if(financingRateInput) financingRateInput.value = "5.0";
-        if(reinvestmentRateInput) reinvestmentRateInput.value = "7.0";
+        if(initialInvestmentInput) initialInvestmentInput.value = "-1000,00";
+        if(financingRateInput) financingRateInput.value = "5,0";
+        if(reinvestmentRateInput) reinvestmentRateInput.value = "7,0";
 
         while (cashFlowsTableBody.firstChild) {
             cashFlowsTableBody.removeChild(cashFlowsTableBody.firstChild);
         }
         cfRowCounter = 0;
-        addCashFlowRow(250, 3);
-        addCashFlowRow(-50, 2);
+        addCashFlowRow("250,00", 3);
+        addCashFlowRow("-50,00", 2);
     }
 
     function openMirrModal() {
@@ -139,9 +140,9 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateMirrBtn.addEventListener('click', function() {
             hideMirrError();
             try {
-                const initialInvestment = parseFloat(initialInvestmentInput.value);
-                const financingRate = parseFloat(financingRateInput.value) / 100;
-                const reinvestmentRate = parseFloat(reinvestmentRateInput.value) / 100;
+                const initialInvestment = parseFinancialInput(initialInvestmentInput.value);
+                const financingRate = parseFinancialInput(financingRateInput.value) / 100;
+                const reinvestmentRate = parseFinancialInput(reinvestmentRateInput.value) / 100;
 
                 if (isNaN(initialInvestment) || isNaN(financingRate) || isNaN(reinvestmentRate)) {
                     throw new Error("Investimento Inicial, Taxa de Financiamento e Taxa de Reinvestimento devem ser números válidos.");
@@ -160,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const amountInput = row.querySelector('.mirr-cash-flow-amount');
                     const quantityInput = row.querySelector('.mirr-cash-flow-quantity');
 
-                    const amount = parseFloat(amountInput.value);
+                    const amount = parseFinancialInput(amountInput.value);
                     const quantity = parseInt(quantityInput.value, 10);
 
                     if (isNaN(amount)) {
@@ -211,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if (N === 0 && initialInvestment !== 0) {
                      if (initialInvestment < 0) {
-                        mirrResultValue.textContent = "-100.000000%";
+                        mirrResultValue.textContent = "-100,000000%";
                         mirrResultContainer.style.display = 'block';
                         return;
                      } else {
@@ -220,18 +221,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (pvOutflows === 0) {
-                    if (fvInflows > 0 && N > 0) throw new Error("Não é possível calcular a TIRM: Nenhuma saída (VP das saídas é zero), mas há entradas ao longo de N períodos.");
-                    if (fvInflows > 0 && N === 0) throw new Error("Não é possível calcular a TIRM: Nenhuma saída (VP das saídas é zero), mas há entradas (provavelmente o investimento inicial foi positivo, N=0).");
-                    else if (fvInflows === 0 && N > 0) throw new Error("Não é possível calcular a TIRM: Tanto o VP das saídas quanto o VF das entradas são zero com N > 0.");
-                    mirrResultValue.textContent = "N/A";
-                    mirrResultContainer.style.display = 'block';
-                    return;
+                    if (fvInflows > 0) {
+                        throw new Error("Não é possível calcular a TIRM: Nenhuma saída de caixa (VP das saídas é zero), mas há entradas. O retorno é infinito.");
+                    } else {
+                        mirrResultValue.textContent = "N/A (sem fluxo de caixa)";
+                        mirrResultContainer.style.display = 'block';
+                        return;
+                    }
                 }
                 if (fvInflows < 0 && pvOutflows > 0) {
                      throw new Error("Não é possível calcular a TIRM: O VF das entradas é negativo. Verifique os sinais do fluxo de caixa e a taxa de reinvestimento.");
                 }
                  if (fvInflows === 0 && pvOutflows > 0 && N > 0) {
-                     mirrResultValue.textContent = "-100.000000%";
+                     mirrResultValue.textContent = "-100,000000%";
                      mirrResultContainer.style.display = 'block';
                      return;
                  }
@@ -239,13 +241,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const mirr = Math.pow(fvInflows / pvOutflows, 1 / N) - 1;
 
                 if (!isFinite(mirr)) {
-                     if (fvInflows === 0 && pvOutflows === 0 && N === 0) {
-                         throw new Error("Não é possível calcular a TIRM: Nenhum fluxo de caixa.");
-                     }
-                    throw new Error("Não foi possível calcular uma TIRM finita. Verifique as entradas, especialmente se o VP das saídas for zero ou muito pequeno, ou se N for zero com VF positivo.");
+                    throw new Error("Não foi possível calcular uma TIRM finita. Verifique as entradas.");
                 }
 
-                mirrResultValue.textContent = (mirr * 100).toFixed(6) + "%";
+                mirrResultValue.textContent = (mirr * 100).toFixed(6).replace('.', ',') + "%";
                 mirrResultContainer.style.display = 'block';
 
             } catch (error) {

@@ -1,5 +1,30 @@
 // financialcalculator.js
 
+// --- FUNÇÃO HELPER APRIMORADA ---
+function parseFinancialInput(valueString) {
+    if (typeof valueString !== 'string' || valueString.trim() === '') {
+        return 0;
+    }
+    const lastDot = valueString.lastIndexOf('.');
+    const lastComma = valueString.lastIndexOf(',');
+    let sanitizedString;
+
+    if (lastComma > lastDot) {
+        // Formato brasileiro (vírgula é decimal), ex: "1.234,56"
+        sanitizedString = valueString.replace(/\./g, '').replace(',', '.');
+    } else if (lastDot > lastComma) {
+        // Formato internacional (ponto é decimal), ex: "1,234.56"
+        sanitizedString = valueString.replace(/,/g, '');
+    } else {
+        // Apenas um tipo de separador ou nenhum
+        sanitizedString = valueString.replace(',', '.');
+    }
+
+    return parseFloat(sanitizedString) || 0;
+}
+// --- FIM DA FUNÇÃO APRIMORADA ---
+
+
 // Função para calcular corretamente o total de juros para Tabela Price
 function calcularTotalJuros(n, i, pmt, pv) {
     if (i === 0) {
@@ -41,7 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePVBtn = document.getElementById('togglePV');
     const toggleFVBtn = document.getElementById('toggleFV');
     const multiplyPeriodsBtn = document.getElementById('multiplyPeriods');
-    const divideRateBtn = document.getElementById('divideRate');
+    const nominalRateBtn = document.getElementById('nominalRateBtn');
+    const effectiveRateBtn = document.getElementById('effectiveRateBtn');
     
     createCustomDropdown();
     
@@ -153,7 +179,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (togglePVBtn) togglePVBtn.addEventListener('click', () => invertSign('presentValue'));
     if (toggleFVBtn) toggleFVBtn.addEventListener('click', () => invertSign('futureValue'));
     if (multiplyPeriodsBtn) multiplyPeriodsBtn.addEventListener('click', multiplyPeriods);
-    if (divideRateBtn) divideRateBtn.addEventListener('click', divideRate);
+    if (nominalRateBtn) nominalRateBtn.addEventListener('click', calculateNominalRate);
+    if (effectiveRateBtn) effectiveRateBtn.addEventListener('click', calculateEffectiveRate);
     if (calculateBtn) calculateBtn.addEventListener('click', calculate);
     if (amortizationPriceBtn) amortizationPriceBtn.addEventListener('click', showPriceAmortizationTable);
     if (amortizationSacBtn) amortizationSacBtn.addEventListener('click', showSacAmortizationTable);
@@ -180,12 +207,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function divideRate() {
+    function calculateNominalRate() {
         try {
-            const rateValue = parseFloat(rateInput.value) || 0;
-            rateInput.value = (rateValue / 12).toFixed(8);
+            const rateValue = parseFinancialInput(rateInput.value);
+            rateInput.value = (rateValue / 12).toFixed(8).replace('.', ',');
         } catch (error) {
             showError("Erro ao dividir a taxa: " + error.message);
+        }
+    }
+
+    function calculateEffectiveRate() {
+        try {
+            const annualRatePercent = parseFinancialInput(rateInput.value);
+            if (annualRatePercent <= -100) {
+                showError("A taxa anual deve ser maior que -100% para calcular a taxa efetiva.");
+                return;
+            }
+            const annualRateDecimal = annualRatePercent / 100;
+            const monthlyEffectiveRate = Math.pow(1 + annualRateDecimal, 1/12) - 1;
+            rateInput.value = (monthlyEffectiveRate * 100).toFixed(8).replace('.', ',');
+        } catch (error) {
+            showError("Erro ao calcular a taxa efetiva: " + error.message);
         }
     }
     
@@ -197,8 +239,8 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (field === 'futureValue') inputElement = futureValueInput;
 
         if (inputElement) {
-            let val = parseFloat(inputElement.value) || 0;
-            inputElement.value = (-val).toFixed(2);
+            let val = parseFinancialInput(inputElement.value);
+            inputElement.value = (-val).toFixed(2).replace('.', ',');
         }
         setTimeout(() => { adjustingSignals = false; }, 100);
     }
@@ -211,10 +253,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function clearFields() {
         if(periodsInput) periodsInput.value = "12";
-        if(rateInput) rateInput.value = "1.0"; 
-        if(paymentInput) paymentInput.value = "0.00";
-        if(presentValueInput) presentValueInput.value = "1000.00";
-        if(futureValueInput) futureValueInput.value = "0.00";
+        if(rateInput) rateInput.value = "1,00"; 
+        if(paymentInput) paymentInput.value = "0,00";
+        if(presentValueInput) presentValueInput.value = "1000,00";
+        if(futureValueInput) futureValueInput.value = "0,00";
         if(resultContainer) resultContainer.classList.remove('visible');
         hideError();
         
@@ -291,10 +333,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             hideError();
             const n = parseInt(periodsInput.value) || 0;
-            const i = (parseFloat(rateInput.value) || 0) / 100;
-            let pmtVal = parseFloat(paymentInput.value) || 0;
-            const pv = parseFloat(presentValueInput.value) || 0;
-            const fv = parseFloat(futureValueInput.value) || 0;
+            const i = parseFinancialInput(rateInput.value) / 100;
+            let pmtVal = parseFinancialInput(paymentInput.value);
+            const pv = parseFinancialInput(presentValueInput.value);
+            const fv = parseFinancialInput(futureValueInput.value);
 
             if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
             if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para a amortização.");
@@ -326,8 +368,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             hideError();
             const n = parseInt(periodsInput.value) || 0;
-            const i = (parseFloat(rateInput.value) || 0) / 100;
-            const pv = parseFloat(presentValueInput.value) || 0;
+            const i = parseFinancialInput(rateInput.value) / 100;
+            const pv = parseFinancialInput(presentValueInput.value);
 
             if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para o cálculo SAC.");
             if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
@@ -377,18 +419,16 @@ document.addEventListener('DOMContentLoaded', function() {
         amortizationContent.innerHTML = tableHTML;
     }
 
-    // --- INÍCIO DA LÓGICA CORRIGIDA ---
     function calculatePriceAmortizationTable(n, i, pmt, pv, fv) {
-        let pvCorrigido = -Math.abs(pv); // Garante que PV seja negativo para o cálculo
-        let pmtCalculado = pmt !== 0 ? -Math.abs(pmt) : 0; // Garante que PMT seja negativo
+        let pvCorrigido = -Math.abs(pv); 
+        let pmtCalculado = pmt !== 0 ? -Math.abs(pmt) : 0;
 
-        // Se o pagamento não for fornecido, calcula com base nos outros parâmetros
         if (pmtCalculado === 0 && pvCorrigido !== 0 && i >= 0) {
              pmtCalculado = calculatePayment(n, i, pvCorrigido, fv);
         }
 
         const table = [];
-        let currentBalance = -pvCorrigido; // Saldo devedor inicial positivo
+        let currentBalance = -pvCorrigido; 
         let cumulativeInterest = 0;
         let cumulativePrincipal = 0;
 
@@ -400,14 +440,13 @@ document.addEventListener('DOMContentLoaded', function() {
             cumulativeInterest += interestForPeriod;
             cumulativePrincipal += principalPaymentPart;
 
-            // Ajuste final para garantir que o saldo seja exatamente zero
             if (period === n) {
                 currentBalance = 0;
             }
 
             table.push({
                 period: period,
-                payment: Math.abs(pmtCalculado), // O pagamento é constante
+                payment: Math.abs(pmtCalculado),
                 interestPayment: interestForPeriod,
                 cumulativeInterest: cumulativeInterest,
                 principalPayment: principalPaymentPart,
@@ -423,7 +462,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const principalAmount = Math.abs(pv);
         if (n <= 0) return table;
 
-        // Amortização padrão, arredondada para 2 casas decimais
         const constantAmortization = parseFloat((principalAmount / n).toFixed(2));
         
         let currentBalance = principalAmount;
@@ -435,7 +473,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let principalPaymentForPeriod;
 
             if (period === n) {
-                // Na última parcela, a amortização é o saldo restante para garantir que zere
                 principalPaymentForPeriod = currentBalance;
             } else {
                 principalPaymentForPeriod = constantAmortization;
@@ -447,7 +484,6 @@ document.addEventListener('DOMContentLoaded', function() {
             cumulativePrincipal += principalPaymentForPeriod;
             currentBalance -= principalPaymentForPeriod;
             
-            // Força o saldo a ser zero no final para evitar resíduos de ponto flutuante
             if(period === n) {
                 currentBalance = 0;
             }
@@ -464,7 +500,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return table;
     }
-    // --- FIM DA LÓGICA CORRIGIDA ---
     
     function getLabelForField(field) {
         const labels = { periods: 'Períodos (n)', rate: 'Taxa (i)', payment: 'Pagamento (PMT)', presentValue: 'Valor Presente (PV)', futureValue: 'Valor Futuro (FV)'};
@@ -475,10 +510,10 @@ document.addEventListener('DOMContentLoaded', function() {
         hideError();
         try {
             const n_val = parseInt(periodsInput.value) || 0;
-            const i_val = (parseFloat(rateInput.value) || 0) / 100;
-            const pmt_val = parseFloat(paymentInput.value) || 0;
-            const pv_val = parseFloat(presentValueInput.value) || 0;
-            const fv_val = parseFloat(futureValueInput.value) || 0;
+            const i_val = parseFinancialInput(rateInput.value) / 100;
+            const pmt_val = parseFinancialInput(paymentInput.value);
+            const pv_val = parseFinancialInput(presentValueInput.value);
+            const fv_val = parseFinancialInput(futureValueInput.value);
             const fieldToCalculate = calculateFieldSelect.value;
             
             validateInput(n_val, i_val, pmt_val, pv_val, fv_val, fieldToCalculate);
@@ -493,24 +528,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (result !== null) periodsInput.value = Math.ceil(result);
                     break;
                 case 'rate':
-                    originalValueInput = parseFloat(rateInput.value);
+                    originalValueInput = parseFinancialInput(rateInput.value);
                     result = calculateRate(n_val, pmt_val, pv_val, fv_val); 
-                    if (result !== null) rateInput.value = result.toFixed(8);
+                    if (result !== null) rateInput.value = result.toFixed(8).replace('.', ',');
                     break;
                 case 'payment':
                     originalValueInput = pmt_val;
                     result = calculatePayment(n_val, i_val, pv_val, fv_val);
-                    if (result !== null) paymentInput.value = result.toFixed(2);
+                    if (result !== null) paymentInput.value = result.toFixed(2).replace('.', ',');
                     break;
                 case 'presentValue':
                     originalValueInput = pv_val;
                     result = calculatePresentValue(n_val, i_val, pmt_val, fv_val);
-                    if (result !== null) presentValueInput.value = result.toFixed(2);
+                    if (result !== null) presentValueInput.value = result.toFixed(2).replace('.', ',');
                     break;
                 case 'futureValue':
                     originalValueInput = fv_val;
                     result = calculateFutureValue(n_val, i_val, pmt_val, pv_val);
-                    if (result !== null) futureValueInput.value = result.toFixed(2);
+                    if (result !== null) futureValueInput.value = result.toFixed(2).replace('.', ',');
                     break;
                 default:
                     throw new Error("Campo de cálculo desconhecido.");
@@ -520,10 +555,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultValue.textContent = fieldToCalculate === 'rate' ? formatRate(result) + "%" : formatCurrency(result);
                 
                 const finalN = parseInt(periodsInput.value) || 0;
-                const finalRatePercent = parseFloat(rateInput.value) || 0;
+                const finalRatePercent = parseFinancialInput(rateInput.value);
                 const finalI = finalRatePercent / 100;
-                const finalPmt = parseFloat(paymentInput.value) || 0;
-                const finalPv = parseFloat(presentValueInput.value) || 0;
+                const finalPmt = parseFinancialInput(paymentInput.value);
+                const finalPv = parseFinancialInput(presentValueInput.value);
+                const finalFv = parseFinancialInput(futureValueInput.value);
 
                 let interestAmount = 0;
                 let totalPrincipalPayments = 0;
@@ -536,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 resultContainer.classList.add('visible');
                 
-                addToHistory(fieldToCalculate, result, originalValueInput, finalN, finalRatePercent, finalPmt, finalPv, parseFloat(futureValueInput.value), interestAmount, totalPrincipalPayments);
+                addToHistory(fieldToCalculate, result, originalValueInput, finalN, finalRatePercent, finalPmt, finalPv, finalFv, interestAmount, totalPrincipalPayments);
             } else if (result === null || !isFinite(result)) {
                 showError("Não foi possível calcular o valor ou o resultado é inválido.");
                 if(resultValue) resultValue.textContent = "-";
@@ -716,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             let base = -fv / pv;
-            if (base === 0 && fv === 0) return -100; 
+            if (base <= 0) return null;
 
             const rate = (Math.pow(base, 1 / n) - 1) * 100;
             calculationCache[cacheKey] = rate;
@@ -767,7 +803,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (rateGuess < -0.999) rateGuess = -0.999; 
             if (rateGuess > 10) rateGuess = 10; 
         }
-        throw new Error("Não foi possível convergir para uma taxa de juros. Verifique os valores de entrada.");
+        return null;
     }
 
     if (amortizationModal && amortizationModalContentEl) {

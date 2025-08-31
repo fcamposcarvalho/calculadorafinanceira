@@ -32,15 +32,18 @@
                 <div class="form-group">
                     <label for="rate">Taxa (i) %:</label>
                     <div class="input-group">
-                        <input type="number" id="rate" step="0.01" value="1.00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
-                        <button class="btn-toggle" id="divideRate">12÷</button>
+                        <input type="text" inputmode="decimal" id="rate" value="1,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <div class="rate-button-group">
+                            <button class="btn-toggle" id="nominalRateBtn" title="Calcula a taxa mensal nominal (divide a taxa anual por 12). Padrão para financiamentos.">12÷</button>
+                            <button class="btn-toggle" id="effectiveRateBtn" title="Calcula a taxa mensal equivalente/efetiva (juros compostos). Padrão para investimentos.">Efet.</button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="payment">Pagamento (PMT):</label>
                     <div class="input-group">
-                        <input type="number" id="payment" value="0.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="payment" value="0,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                         <button class="btn-toggle" id="togglePayment">+/-</button>
                     </div>
                 </div>
@@ -48,7 +51,7 @@
                 <div class="form-group">
                     <label for="presentValue">Valor Presente (PV):</label>
                     <div class="input-group">
-                        <input type="number" id="presentValue" value="1000.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="presentValue" value="1000,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                         <button class="btn-toggle" id="togglePV">+/-</button>
                     </div>
                 </div>
@@ -56,7 +59,7 @@
                 <div class="form-group">
                     <label for="futureValue">Valor Futuro (FV):</label>
                     <div class="input-group">
-                        <input type="number" id="futureValue" value="0.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="futureValue" value="0,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                         <button class="btn-toggle" id="toggleFV">+/-</button>
                     </div>
                 </div>
@@ -196,19 +199,19 @@
                         <label for="mirrInitialInvestment">Investimento Inicial (FC0):
                             <span class="tooltip">?<span class="tooltiptext">O fluxo de caixa inicial do projeto no período 0. Insira como um valor negativo para um investimento (saída) ou positivo para uma receita inicial (entrada). Este valor faz parte do cálculo da TIRM.</span></span>
                         </label>
-                        <input type="number" id="mirrInitialInvestment" value="-1000.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="mirrInitialInvestment" value="-1000,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
                     <div class="form-group">
                         <label for="mirrFinancingRate">Taxa de Financiamento (% por período):
                             <span class="tooltip">?<span class="tooltiptext">A taxa de juros (ex: 5 para 5%) por período na qual se assume que os fluxos de caixa negativos subsequentes (custos, após o FC0) são financiados. Esta taxa é usada para encontrar o valor presente deles no período 0. Se for 0%, eles são efetivamente somados sem desconto de juros. Garanta que o período (anual, mensal) corresponde aos seus períodos de fluxo de caixa.</span></span>
                         </label>
-                        <input type="number" id="mirrFinancingRate" value="5.0" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="mirrFinancingRate" value="5,0" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
                     <div class="form-group">
                         <label for="mirrReinvestmentRate">Taxa de Reinvestimento (% por período):
                             <span class="tooltip">?<span class="tooltiptext">A taxa de juros (ex: 7 para 7%) por período na qual se assume que os fluxos de caixa positivos (incluindo um FC0 positivo e entradas subsequentes) são reinvestidos. Esta taxa é usada para encontrar o valor futuro deles no final do último período de fluxo de caixa (período N). Se for 0%, eles são efetivamente somados sem juros compostos. Garanta que o período corresponde aos seus períodos de fluxo de caixa.</span></span>
                         </label>
-                        <input type="number" id="mirrReinvestmentRate" value="7.0" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="mirrReinvestmentRate" value="7,0" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
 
                     <h3>Fluxos de Caixa (após investimento inicial):
@@ -252,7 +255,7 @@
                         <label for="irrInitialInvestment">Investimento Inicial (FC0):
                             <span class="tooltip">?<span class="tooltiptext">A saída de caixa inicial para o projeto (geralmente um valor negativo, ex: -1000) ou entrada (valor positivo).</span></span>
                         </label>
-                        <input type="number" id="irrInitialInvestment" value="-1000.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="irrInitialInvestment" value="-1000,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
 
                     <h3>Fluxos de Caixa (FC1, FC2, ...):
@@ -297,7 +300,7 @@
                         <label for="npvInitialInvestment">Investimento Inicial (FC0):
                             <span class="tooltip">?<span class="tooltiptext">A saída de caixa inicial para o projeto (geralmente um valor negativo, ex: -1000) ou entrada (valor positivo). Este é o fluxo de caixa no período 0.</span></span>
                         </label>
-                        <input type="number" id="npvInitialInvestment" value="-1000.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="npvInitialInvestment" value="-1000,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
                     <div class="form-group">
                         <label for="npvDiscountRate">Taxa de Desconto (%):
@@ -306,7 +309,7 @@
 - Para VPL (Ajustado): Esta taxa é usada para descontar a valor presente o valor futuro dos fluxos de caixa positivos (após terem sido reinvestidos à 'Taxa de Reinvestimento'). Também atua como a taxa padrão para fluxos intermediários se a 'Taxa de Financiamento' ou 'Taxa de Reinvestimento' específicas forem zero.
 Deve ser maior que -100%.</span></span>
                         </label>
-                        <input type="number" id="npvDiscountRate" value="10.0" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="npvDiscountRate" value="10,0" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
                     <div class="form-group">
                         <label for="npvFinancingRate">Taxa de Financiamento (%):
@@ -315,7 +318,7 @@ Reflete o custo de financiar esses desembolsos.
 Se 0% ou não especificada, a 'Taxa de Desconto' principal será usada para esses fluxos negativos no cálculo ajustado.
 Deve ser maior que -100% (se não for zero).</span></span>
                         </label>
-                        <input type="number" id="npvFinancingRate" value="0.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="npvFinancingRate" value="0,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
                     <div class="form-group">
                         <label for="npvReinvestmentRate">Taxa de Reinvestimento (%):
@@ -324,7 +327,7 @@ Reflete a oportunidade de retorno sobre os lucros gerados.
 Se 0% ou não especificada, a 'Taxa de Desconto' principal será usada para capitalizar esses fluxos positivos no cálculo ajustado.
 Deve ser maior que -100% (se não for zero).</span></span>
                         </label>
-                        <input type="number" id="npvReinvestmentRate" value="0.00" step="0.01" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
+                        <input type="text" inputmode="decimal" id="npvReinvestmentRate" value="0,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
 
                     <h3>Fluxos de Caixa (FC1, FC2, ...):

@@ -1,5 +1,7 @@
 // calculator_npv.js
 document.addEventListener('DOMContentLoaded', function() {
+    // A função parseFinancialInput já está disponível globalmente.
+
     const adjNpvBtn = document.getElementById('adjNpvBtn');
     const npvModal = document.getElementById('npvModal');
     const closeNpvModalBtn = document.getElementById('closeNpvModal');
@@ -45,7 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const cellAmount = row.insertCell();
         const amountInput = document.createElement('input');
-        amountInput.type = 'number';
+        amountInput.type = 'text';
+        amountInput.inputMode = 'decimal';
         amountInput.className = 'npv-cash-flow-amount';
         amountInput.value = amount;
         amountInput.placeholder = "ex: 200 ou -150";
@@ -78,10 +81,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.addEventListener('keydown', window.handleNumericInputKeydown);
                 input.removeEventListener('dblclick', window.handleNumericInputDblClick); 
                 input.addEventListener('dblclick', window.handleNumericInputDblClick);    
-                input.title = "Pressione Enter, F1, Espaço ou duplo clique para acessar a calculadora";
+                input.title = "Pressione F1 ou duplo clique para acessar a calculadora";
             });
-        } else {
-            console.warn('Funções auxiliares de input numérico globais não definidas. A calculadora pode não abrir corretamente para campos dinâmicos do VPL.');
         }
     }
 
@@ -131,18 +132,18 @@ document.addEventListener('DOMContentLoaded', function() {
         hideNpvError();
         if (npvResultContainer) npvResultContainer.style.display = 'none';
 
-        if (initialInvestmentInput) initialInvestmentInput.value = "-1000.00";
-        if (discountRateInput) discountRateInput.value = "10.0";
-        if (financingRateInput) financingRateInput.value = "0.00";
-        if (reinvestmentRateInput) reinvestmentRateInput.value = "0.00";
+        if (initialInvestmentInput) initialInvestmentInput.value = "-1000,00";
+        if (discountRateInput) discountRateInput.value = "10,0";
+        if (financingRateInput) financingRateInput.value = "0,00";
+        if (reinvestmentRateInput) reinvestmentRateInput.value = "0,00";
         
         while (cashFlowsTableBody.firstChild) {
             cashFlowsTableBody.removeChild(cashFlowsTableBody.firstChild);
         }
         cfRowCounterNpv = 0; 
-        addNpvCashFlowRow(200, 1); 
-        addNpvCashFlowRow(300, 2); 
-        addNpvCashFlowRow(500, 1); 
+        addNpvCashFlowRow("200,00", 1); 
+        addNpvCashFlowRow("300,00", 2); 
+        addNpvCashFlowRow("500,00", 1); 
     }
 
     function openNpvModal() {
@@ -191,19 +192,15 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateNpvBtn.addEventListener('click', function() {
             hideNpvError();
             try {
-                const initialInvestment = parseFloat(initialInvestmentInput.value);
+                const initialInvestment = parseFinancialInput(initialInvestmentInput.value);
                 let discountRateVal = discountRateInput.value.trim();
                 if (discountRateVal === "") {
                      throw new Error("A Taxa de Desconto não pode estar vazia.");
                 }
-                const discountRate = parseFloat(discountRateVal) / 100;
+                const discountRate = parseFinancialInput(discountRateVal) / 100;
 
-
-                let financingRate = parseFloat(financingRateInput.value);
-                if (isNaN(financingRate) || financingRateInput.value.trim() === "") financingRate = 0; else financingRate /= 100;
-
-                let reinvestmentRate = parseFloat(reinvestmentRateInput.value);
-                if (isNaN(reinvestmentRate) || reinvestmentRateInput.value.trim() === "") reinvestmentRate = 0; else reinvestmentRate /= 100;
+                let financingRate = parseFinancialInput(financingRateInput.value) / 100;
+                let reinvestmentRate = parseFinancialInput(reinvestmentRateInput.value) / 100;
 
                 if (isNaN(initialInvestment) || isNaN(discountRate)) {
                     throw new Error("Investimento Inicial e Taxa de Desconto devem ser números válidos.");
@@ -211,11 +208,11 @@ document.addEventListener('DOMContentLoaded', function() {
                  if (discountRate <= -1 ) { 
                     throw new Error("A Taxa de Desconto deve ser maior que -100%.");
                 }
-                if (financingRate <= -1 && financingRateInput.value.trim() !== "" && financingRateInput.value !== "0.00" && financingRateInput.value !== "0") {
-                     throw new Error("A Taxa de Financiamento deve ser maior que -100%.");
+                if (financingRate < -1) {
+                     throw new Error("A Taxa de Financiamento deve ser maior ou igual a -100%.");
                 }
-                if (reinvestmentRate <= -1 && reinvestmentRateInput.value.trim() !== "" && reinvestmentRateInput.value !== "0.00" && reinvestmentRateInput.value !== "0") {
-                     throw new Error("A Taxa de Reinvestimento deve ser maior que -100%.");
+                if (reinvestmentRate < -1) {
+                     throw new Error("A Taxa de Reinvestimento deve ser maior ou igual a -100%.");
                 }
 
                 const cashFlowRows = cashFlowsTableBody.querySelectorAll('tr');
@@ -223,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 cashFlowRows.forEach(row => {
                     const amountInput = row.querySelector('.npv-cash-flow-amount');
                     const quantityInput = row.querySelector('.npv-cash-flow-quantity');
-                    const amount = parseFloat(amountInput.value);
+                    const amount = parseFinancialInput(amountInput.value);
                     const quantity = parseInt(quantityInput.value, 10);
 
                     if (isNaN(amount)) throw new Error(`Valor inválido em uma das linhas de fluxo de caixa.`);
@@ -235,13 +232,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error("Nenhum fluxo de caixa fornecido (FC0 é zero e não há FCs subsequentes).");
                 }
 
-
                 let npv = 0;
                 let resultTitleText = "Resultado do VPL:"; 
 
-                const finRateIsEffectivelyZero = (financingRate === 0 && (financingRateInput.value.trim() === "" || financingRateInput.value === "0.00" || financingRateInput.value === "0"));
-                const reinRateIsEffectivelyZero = (reinvestmentRate === 0 && (reinvestmentRateInput.value.trim() === "" || reinvestmentRateInput.value === "0.00" || reinvestmentRateInput.value === "0"));
-                const useTraditionalNpv = finRateIsEffectivelyZero && reinRateIsEffectivelyZero;
+                const useTraditionalNpv = financingRate === 0 && reinvestmentRate === 0;
 
                 if (useTraditionalNpv) {
                     npv = initialInvestment;
@@ -250,9 +244,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         npv += cf / Math.pow(1 + discountRate, index + 1);
                     });
                     resultTitleText = "Resultado do VPL:";
-                } else { // Cálculo do VPL Ajustado
-                    const effectiveFinancingRate = finRateIsEffectivelyZero ? discountRate : financingRate;
-                    const effectiveReinvestmentRate = reinRateIsEffectivelyZero ? discountRate : reinvestmentRate;
+                } else {
+                    const effectiveFinancingRate = financingRate === 0 ? discountRate : financingRate;
+                    const effectiveReinvestmentRate = reinvestmentRate === 0 ? discountRate : reinvestmentRate;
                     
                     let pvIntermediateOutflows = 0;
                     expandedCashFlows.forEach((cf, index) => {
@@ -275,12 +269,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     npv = initialInvestment + pvIntermediateOutflows + pvOfFvInflows;
 
-                    if (!finRateIsEffectivelyZero && !reinRateIsEffectivelyZero) {
-                        resultTitleText = "VPL (Adj) (usando Tx. Fin. & Reinv.):";
-                    } else if (!finRateIsEffectivelyZero) {
-                        resultTitleText = "VPL (Adj) (usando Taxa de Financiamento):";
-                    } else { // Cobre !reinRateIsEffectivelyZero
-                        resultTitleText = "VPL (Adj) (usando Taxa de Reinvestimento):";
+                    if (financingRate !== 0 && reinvestmentRate !== 0) {
+                        resultTitleText = "VPL (Adj) (Tx. Fin. & Reinv.):";
+                    } else if (financingRate !== 0) {
+                        resultTitleText = "VPL (Adj) (Tx. Financiamento):";
+                    } else { 
+                        resultTitleText = "VPL (Adj) (Tx. Reinvestimento):";
                     }
                 }
 
@@ -289,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 npvResultTitle.textContent = resultTitleText;
-                npvResultValue.textContent = npv.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                npvResultValue.textContent = formatCurrency(npv);
                 npvResultContainer.style.display = 'block';
 
             } catch (error) {
@@ -316,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (isInteractiveElement) return;
 
-            isNpvDragging = true;
+            isDragging = true;
             if (getComputedStyle(npvModalContent).position !== 'absolute') {
                 const rect = npvModalContent.getBoundingClientRect();
                 npvModalContent.style.position = 'absolute';
