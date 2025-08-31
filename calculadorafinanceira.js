@@ -1,11 +1,10 @@
 // financialcalculator.js
 
-// --- FUNÇÕES HELPER GLOBAIS ---
-// Movidas para fora do DOMContentLoaded para serem acessíveis a outros scripts.
-
+// --- FUNÇÃO HELPER APRIMORADA E CORRIGIDA ---
 /**
  * Converte uma string de valor (que pode usar . ou ,) para um número de ponto flutuante.
- * Trata inteligentemente os padrões brasileiro (1.000,50) e internacional (1,000.50).
+ * Trata inteligentemente os padrões brasileiro (1.000,50), internacional (1,000.50)
+ * e inteiros com separador de milhar (200.000).
  * @param {string} valueString A string a ser convertida.
  * @returns {number} O número convertido.
  */
@@ -13,19 +12,31 @@ function parseFinancialInput(valueString) {
     if (typeof valueString !== 'string' || valueString.trim() === '') {
         return 0;
     }
-    const lastDot = valueString.lastIndexOf('.');
-    const lastComma = valueString.lastIndexOf(',');
-    let sanitizedString;
+    const cleanString = valueString.trim();
+    const lastDot = cleanString.lastIndexOf('.');
+    const lastComma = cleanString.lastIndexOf(',');
 
+    // Caso 1: Não há separadores, é um número simples.
+    if (lastDot === -1 && lastComma === -1) {
+        return parseFloat(cleanString) || 0;
+    }
+
+    // Caso 2: O último separador é um separador de milhar (heurística: seguido por 3 dígitos no final).
+    if ((lastDot > -1 && cleanString.length - lastDot === 4) && lastDot > lastComma) { // Ex: "1.000" ou "200.000"
+        return parseFloat(cleanString.replace(/\./g, '')) || 0;
+    }
+    if ((lastComma > -1 && cleanString.length - lastComma === 4) && lastComma > lastDot) { // Ex: "1,000" (menos comum, mas coberto)
+        return parseFloat(cleanString.replace(/,/g, '')) || 0;
+    }
+
+    // Caso 3: Há um separador decimal.
+    let sanitizedString;
     if (lastComma > lastDot) {
-        // Formato brasileiro (vírgula é decimal), ex: "1.234,56"
-        sanitizedString = valueString.replace(/\./g, '').replace(',', '.');
-    } else if (lastDot > lastComma) {
-        // Formato internacional (ponto é decimal), ex: "1,234.56"
-        sanitizedString = valueString.replace(/,/g, '');
+        // A vírgula é o decimal, então removemos os pontos. Ex: "1.234,56"
+        sanitizedString = cleanString.replace(/\./g, '').replace(',', '.');
     } else {
-        // Apenas um tipo de separador ou nenhum
-        sanitizedString = valueString.replace(',', '.');
+        // O ponto é o decimal, então removemos as vírgulas. Ex: "1,234.56"
+        sanitizedString = cleanString.replace(/,/g, '');
     }
 
     return parseFloat(sanitizedString) || 0;
@@ -40,7 +51,7 @@ function formatCurrency(value) {
     if (isNaN(value) || value === null) return "R$ 0,00"; 
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
-// --- FIM DAS FUNÇÕES HELPER GLOBAIS ---
+// --- FIM DAS FUNÇÕES HELPER ---
 
 
 // Função para calcular corretamente o total de juros para Tabela Price
@@ -338,7 +349,6 @@ document.addEventListener('DOMContentLoaded', function() {
         historyModal.style.display = "flex";
     }
 
-    // --- INÍCIO DA CORREÇÃO ---
     function showPriceAmortizationTable() {
         if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
 
@@ -354,7 +364,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
             if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para a amortização.");
             
-            // Força o recálculo do PMT com os valores atuais, ignorando o campo de input.
             const pmtVal = calculatePayment(n, i, -Math.abs(pv), fv);
 
             const amortizationData = calculatePriceAmortizationTable(n, i, pmtVal, pv, fv);
@@ -375,7 +384,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showError("Amortização (PRICE): " + error.message);
         }
     }
-    // --- FIM DA CORREÇÃO ---
 
     function showSacAmortizationTable() {
         if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
