@@ -1,27 +1,41 @@
 // financialcalculator.js
 
+// financialcalculator.js -> Substitua a função existente por esta
+
 /**
- * Converte uma string no formato brasileiro para um número de ponto flutuante,
- * usando Expressões Regulares para máxima robustez.
- * Trata corretamente separadores de milhar e a vírgula como decimal.
- * @param {string} valueString A string a ser convertida (ex: "200.000,50" ou "200.000").
+ * Converte uma string de valor para número, lidando de forma inteligente com os formatos
+ * brasileiro (1.000,50) e internacional (1,000.50) usando uma regra de detecção.
+ * @param {string} valueString A string a ser convertida.
  * @returns {number} O número convertido.
  */
 function parseFinancialInput(valueString) {
     if (typeof valueString !== 'string' || valueString.trim() === '') {
         return 0;
     }
+    const cleanString = valueString.trim();
+    let sanitizedString = cleanString; // Inicializa a variável aqui
+
+    // Heurística de detecção: verifica se há um ponto decimal no formato internacional.
+    // A condição é: existe um ponto, e o número de caracteres após ele NÃO é 3,
+    // E esse ponto aparece depois da última vírgula (para tratar casos como 1,234.56).
+    const lastDotIndex = cleanString.lastIndexOf('.');
+    const lastCommaIndex = cleanString.lastIndexOf(',');
+    const isInternationalDecimal = lastDotIndex > -1 && 
+                                   (cleanString.length - lastDotIndex - 1) !== 3 && 
+                                   lastDotIndex > lastCommaIndex;
+
+    if (isInternationalDecimal) {
+        // Formato internacional detectado. Remove as vírgulas (milhar).
+        // Ex: "1,234,567.89" -> "1234567.89"
+        sanitizedString = cleanString.replace(/,/g, '');
+    } else {
+        // Assume formato brasileiro (ou inteiro com pontos de milhar).
+        // Remove os pontos (milhar) e troca a vírgula (decimal) por ponto.
+        // Ex: "1.234.567,89" -> "1234567.89"
+        // Ex: "200.000.000" -> "200000000"
+        sanitizedString = cleanString.replace(/\./g, '').replace(',', '.');
+    }
     
-    let sanitizedString = valueString.trim();
-
-    // Passo 1: Remove todos os pontos (tratados como separadores de milhar).
-    // A RegExp /\./g significa "encontre todos os caracteres de ponto".
-    sanitizedString = sanitizedString.replace(/\./g, '');
-
-    // Passo 2: Substitui a vírgula (tratada como separador decimal) por um ponto.
-    sanitizedString = sanitizedString.replace(',', '.');
-
-    // Passo 3: Converte a string limpa para um número.
     return parseFloat(sanitizedString) || 0;
 }
 
