@@ -1,44 +1,27 @@
 // financialcalculator.js
 
-// --- FUNÇÃO HELPER APRIMORADA E CORRIGIDA ---
 /**
- * Converte uma string de valor (que pode usar . ou ,) para um número de ponto flutuante.
- * Trata inteligentemente os padrões brasileiro (1.000,50), internacional (1,000.50)
- * e inteiros com separador de milhar (200.000).
- * @param {string} valueString A string a ser convertida.
+ * Converte uma string no formato brasileiro para um número de ponto flutuante,
+ * usando Expressões Regulares para máxima robustez.
+ * Trata corretamente separadores de milhar e a vírgula como decimal.
+ * @param {string} valueString A string a ser convertida (ex: "200.000,50" ou "200.000").
  * @returns {number} O número convertido.
  */
 function parseFinancialInput(valueString) {
     if (typeof valueString !== 'string' || valueString.trim() === '') {
         return 0;
     }
-    const cleanString = valueString.trim();
-    const lastDot = cleanString.lastIndexOf('.');
-    const lastComma = cleanString.lastIndexOf(',');
+    
+    let sanitizedString = valueString.trim();
 
-    // Caso 1: Não há separadores, é um número simples.
-    if (lastDot === -1 && lastComma === -1) {
-        return parseFloat(cleanString) || 0;
-    }
+    // Passo 1: Remove todos os pontos (tratados como separadores de milhar).
+    // A RegExp /\./g significa "encontre todos os caracteres de ponto".
+    sanitizedString = sanitizedString.replace(/\./g, '');
 
-    // Caso 2: O último separador é um separador de milhar (heurística: seguido por 3 dígitos no final).
-    if ((lastDot > -1 && cleanString.length - lastDot === 4) && lastDot > lastComma) { // Ex: "1.000" ou "200.000"
-        return parseFloat(cleanString.replace(/\./g, '')) || 0;
-    }
-    if ((lastComma > -1 && cleanString.length - lastComma === 4) && lastComma > lastDot) { // Ex: "1,000" (menos comum, mas coberto)
-        return parseFloat(cleanString.replace(/,/g, '')) || 0;
-    }
+    // Passo 2: Substitui a vírgula (tratada como separador decimal) por um ponto.
+    sanitizedString = sanitizedString.replace(',', '.');
 
-    // Caso 3: Há um separador decimal.
-    let sanitizedString;
-    if (lastComma > lastDot) {
-        // A vírgula é o decimal, então removemos os pontos. Ex: "1.234,56"
-        sanitizedString = cleanString.replace(/\./g, '').replace(',', '.');
-    } else {
-        // O ponto é o decimal, então removemos as vírgulas. Ex: "1,234.56"
-        sanitizedString = cleanString.replace(/,/g, '');
-    }
-
+    // Passo 3: Converte a string limpa para um número.
     return parseFloat(sanitizedString) || 0;
 }
 
@@ -47,6 +30,7 @@ function parseFinancialInput(valueString) {
  * @param {number} value O número a ser formatado.
  * @returns {string} A string formatada como moeda.
  */
+ 
 function formatCurrency(value) {
     if (isNaN(value) || value === null) return "R$ 0,00"; 
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
