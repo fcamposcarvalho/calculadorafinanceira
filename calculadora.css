@@ -738,3 +738,91 @@ input[type="text"].highlighted {
 #calculatorModal {
     z-index: 1050;
 }
+
+/* Adicione estas regras ao final do seu arquivo calculadora.css */
+
+/* --- Estilos para o Seletor de Modo ALG/RPN --- */
+.calc-mode-selector {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    background-color: var(--soft-gray);
+    padding: 4px;
+}
+
+.calc-mode-btn {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.calc-mode-btn.active {
+    background-color: white;
+    color: var(--primary-dark);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* --- Estilos para o Visor RPN --- */
+#calcDisplayContainer {
+    margin-bottom: 15px;
+}
+
+.calc-display-rpn {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-family: 'Consolas', 'Menlo', 'Courier New', monospace;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.rpn-stack-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    color: #6c757d; /* Cinza suave para registros T, Z, Y */
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.rpn-stack-row.main {
+    color: var(--text-color); /* Cor principal para o registro X */
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.rpn-reg {
+    color: var(--primary-color);
+    font-weight: normal;
+    font-size: 0.8em;
+    margin-right: 10px;
+}
+
+.rpn-stack-row.main .rpn-reg {
+    font-size: 0.7em;
+}
+
+/* Esconder o visor ALG quando em modo RPN */
+.calculator-modal.rpn-mode #algDisplay {
+    display: none;
+}
+
+/* Mostrar o visor RPN quando em modo RPN */
+.calculator-modal.rpn-mode #rpnDisplay {
+    display: flex; /* Usamos flex por causa do flex-direction: column */
+}
+
+/* Esconder o visor RPN por padrão (quando não está em rpn-mode) */
+.calculator-modal:not(.rpn-mode) #rpnDisplay {
+    display: none;
+}

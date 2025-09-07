@@ -1,41 +1,64 @@
-// calculator.js - Implementação da calculadora básica
+// calculator.js - Implementação da calculadora com modos ALG e RPN (Versão Final com Debug e transferência de valor entre modos)
 
 document.addEventListener('DOMContentLoaded', function() {
     // -------------------------------------------------------------------
     // DECLARAÇÃO DE VARIÁVEIS DE ESTADO
     // -------------------------------------------------------------------
+    
+    // --- Estado Geral ---
+    let activeInputField = null; 
+    const DEBUG_RPN = false; // Habilita/desabilita logs para depuração do modo RPN
+    const DEBUG_ALG = false; // Habilita/desabilita logs para depuração do modo ALG
+
+    // --- Estado Modo Algébrico (ALG) ---
     let currentInput = '0';
     let previousInput = '';
     let calculationOperator = '';
     let resetScreen = false;
     let expressionMode = false;
-    let activeInputField = null; // Será usado para saber qual campo preencher
 
-    // Constantes matemáticas
+    // --- Estado Modo Polonês Reverso (RPN) ---
+    let rpnMode = false;
+    let rpnStack = [0, 0, 0, 0]; // Representa T, Z, Y, X
+    let isEntering = true; // Controla se a digitação substitui X ou anexa
+    
+    // --- Constantes ---
     const MATH_CONSTANTS = {
         pi: Math.PI,
         euler: Math.E,
         phi: (1 + Math.sqrt(5)) / 2,
     };
-    const CONSTANT_VALUES_AS_STRINGS = Object.values(MATH_CONSTANTS).map(v => v.toString());
-    const FUNCTION_NAMES = ['sqrt', 'log', 'ln', 'exp'];
-    // -------------------------------------------------------------------
 
-    // Elementos do DOM
+    // -------------------------------------------------------------------
+    // ELEMENTOS DO DOM
+    // -------------------------------------------------------------------
     const calculatorBtn = document.getElementById('calculatorBtn');
     const calculatorModal = document.getElementById('calculatorModal');
     const closeCalculatorModal = document.getElementById('closeCalculatorModal');
-    const calcDisplay = document.getElementById('calcDisplay');
     const calcButtons = document.querySelectorAll('.calc-btn');
     const calculatorModalContentEl = calculatorModal ? calculatorModal.querySelector('.modal-content.calculator-modal') : null;
 
+    const algBtn = document.getElementById('algBtn');
+    const rpnBtn = document.getElementById('rpnBtn');
+    const algDisplayInput = document.getElementById('calcDisplay');
+    const stackDisplays = {
+        t: document.getElementById('stackT'),
+        z: document.getElementById('stackZ'),
+        y: document.getElementById('stackY'),
+        x: document.getElementById('stackX')
+    };
+    const equalsEnterBtn = document.getElementById('equalsEnterBtn');
+    const ceClxBtn = document.getElementById('ceClxBtn');
+    const parenSwapBtn = document.getElementById('parenSwapBtn');
+    const parenRollBtn = document.getElementById('parenRollBtn');
+
     if (!calculatorBtn) console.error("ERRO CRÍTICO: Botão #calculatorBtn NÃO encontrado!");
     if (!calculatorModal) console.error("ERRO CRÍTICO: Modal #calculatorModal NÃO encontrado!");
-    if (!closeCalculatorModal) console.warn("AVISO: Botão #closeCalculatorModal não encontrado.");
-    if (!calcDisplay) console.warn("AVISO: Display #calcDisplay não encontrado.");
 
 
-    // --- LÓGICA DE ARRASTAR O MODAL ---
+    // -------------------------------------------------------------------
+    // LÓGICA DE ARRASTAR O MODAL (ORIGINAL)
+    // -------------------------------------------------------------------
     if (calculatorModal && calculatorModalContentEl && closeCalculatorModal) {
         let isDragging = false;
         let dragOffsetX, dragOffsetY;
@@ -98,53 +121,112 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.warn("Lógica de arrastar do modal NÃO configurada devido a elementos ausentes.");
     }
-    // --- FIM DO ARRASTE ---
+    
+    // -------------------------------------------------------------------
+    // FUNÇÕES DE GERENCIAMENTO DE MODO
+    // -------------------------------------------------------------------
+    function setMode(isRpn) {
+        // AJUSTE: Captura o valor atual do visor para transferi-lo entre os modos.
+        const valueToCarryOver = (currentInput === 'Erro') ? '0' : currentInput;
 
-    // --- FUNÇÕES AUXILIARES ---
-    function endsWithConstant(str) {
-        for (const c of CONSTANT_VALUES_AS_STRINGS) {
-            if (str.endsWith(c)) {
-                if (str.length === c.length || !/[a-zA-Z0-9.]/.test(str.charAt(str.length - c.length - 1))) {
-                    return true;
-                }
+        rpnMode = isRpn;
+        if (rpnMode) {
+            calculatorModal.classList.add('rpn-mode');
+            algBtn.classList.remove('active');
+            rpnBtn.classList.add('active');
+            equalsEnterBtn.textContent = 'ENTER';
+            equalsEnterBtn.dataset.action = 'enter';
+            ceClxBtn.textContent = 'CLx';
+            ceClxBtn.dataset.action = 'clearX';
+            parenSwapBtn.textContent = 'x↔y';
+            parenSwapBtn.dataset.action = 'swap';
+            parenRollBtn.textContent = 'R↓';
+            parenRollBtn.dataset.action = 'rollDown';
+        } else {
+            calculatorModal.classList.remove('rpn-mode');
+            rpnBtn.classList.remove('active');
+            algBtn.classList.add('active');
+            equalsEnterBtn.textContent = '=';
+            equalsEnterBtn.dataset.action = 'equals';
+            ceClxBtn.textContent = 'CE';
+            ceClxBtn.dataset.action = 'clearEntry';
+            parenSwapBtn.textContent = '(';
+            parenSwapBtn.dataset.action = 'openParenthesis';
+            parenRollBtn.textContent = ')';
+            parenRollBtn.dataset.action = 'closeParenthesis';
+        }
+
+        // Reseta o estado interno da calculadora para o novo modo.
+        resetCalculator();
+
+        // Restaura o valor capturado para o visor.
+        currentInput = valueToCarryOver;
+
+        // Atualiza o visor para refletir o valor transferido.
+        updateDisplay();
+    }
+    
+    // -------------------------------------------------------------------
+    // FUNÇÕES DE ATUALIZAÇÃO DE VISOR E FORMATAÇÃO
+    // -------------------------------------------------------------------
+    function formatForDisplay(value) {
+        let num = Number(value);
+        if (isNaN(num)) return 'Erro';
+        if (Math.abs(num) > 999999999999 || (Math.abs(num) < 0.0000001 && num !== 0)) {
+            return num.toExponential(6).replace('.', ',');
+        }
+        return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 10, useGrouping: true }).format(num);
+    }
+    
+    function updateDisplay() {
+        if (rpnMode) {
+            if (DEBUG_RPN) console.log(`[RPN] updateDisplay() chamado. Estado: X=${currentInput}, Y=${rpnStack[2]}, Z=${rpnStack[1]}, T=${rpnStack[0]}`);
+            
+            if(stackDisplays.x) stackDisplays.x.textContent = formatForDisplay(currentInput);
+            if(stackDisplays.y) stackDisplays.y.textContent = formatForDisplay(rpnStack[2]);
+            if(stackDisplays.z) stackDisplays.z.textContent = formatForDisplay(rpnStack[1]);
+            if(stackDisplays.t) stackDisplays.t.textContent = formatForDisplay(rpnStack[0]);
+
+            if (algDisplayInput) {
+                algDisplayInput.value = formatForDisplay(currentInput);
+            }
+        } else {
+            if (DEBUG_ALG) console.log(`[ALG] updateDisplay() chamado. Visor atualizado para: "${currentInput.toString().replace(/\./g, ',')}"`);
+            if (algDisplayInput) {
+                algDisplayInput.value = currentInput.toString().replace(/\./g, ',');
             }
         }
-        return false;
     }
 
-    function endsWithCompleteFunction(str) {
-        for (const funcName of FUNCTION_NAMES) {
-            if (str.endsWith(')')) {
-                const funcCallRegex = new RegExp(funcName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\((.*)\\)$');
-                const match = str.match(funcCallRegex);
-                if (match) {
-                    let openParen = 0;
-                    for (const char of match[1]) {
-                        if (char === '(') openParen++;
-                        else if (char === ')') openParen--;
-                        if (openParen < 0) return false;
-                    }
-                    return openParen === 0;
-                }
-            }
-        }
-        return false;
+    // -------------------------------------------------------------------
+    // LÓGICA DA PILHA RPN
+    // -------------------------------------------------------------------
+    function rpnEnter() {
+        if (DEBUG_RPN) console.log('[RPN] ==> rpnEnter() chamado. Estado ANTES:', { stack: JSON.parse(JSON.stringify(rpnStack)), currentInput: currentInput, isEntering: isEntering });
+        rpnStack[0] = rpnStack[1];
+        rpnStack[1] = rpnStack[2];
+        rpnStack[2] = parseFloat(currentInput.replace(',', '.')) || 0;
+        isEntering = true;
+        if (DEBUG_RPN) console.log('[RPN] <== rpnEnter() finalizado. Estado DEPOIS:', { stack: JSON.parse(JSON.stringify(rpnStack)), isEntering: isEntering });
     }
 
-    function shouldInsertMultiplication(inputStr) {
-        if (inputStr === '0' || inputStr === 'Erro') return false;
-        const lastChar = inputStr.charAt(inputStr.length - 1);
-        return (/\d$/.test(lastChar) || lastChar === ')' || endsWithConstant(inputStr) || endsWithCompleteFunction(inputStr));
+    function rpnDrop() {
+        if (DEBUG_RPN) console.log('[RPN] ==> rpnDrop() chamado.');
+        rpnStack[2] = rpnStack[1];
+        rpnStack[1] = rpnStack[0];
+        rpnStack[0] = 0;
+        if (DEBUG_RPN) console.log('[RPN] <== rpnDrop() finalizado. Novo stack:', JSON.parse(JSON.stringify(rpnStack)));
     }
+    
+    // -------------------------------------------------------------------
+    // FUNÇÕES DA CALCULADORA
+    // -------------------------------------------------------------------
 
     function getOperatorChar(opAction) {
         switch (opAction) {
-            case 'add': return '+';
-            case 'subtract': return '-';
-            case 'multiply': return '×';
-            case 'divide': return '÷';
-            case 'power': return '^';
-            default: return '';
+            case 'add': return '+'; case 'subtract': return '-';
+            case 'multiply': return '×'; case 'divide': return '÷';
+            case 'power': return '^'; default: return '';
         }
     }
 
@@ -154,248 +236,187 @@ document.addEventListener('DOMContentLoaded', function() {
         resetScreen = true;
         expressionMode = false;
     }
-
-    // --- FUNÇÕES PRINCIPAIS DA CALCULADORA ---
+    
     function openCalculator(inputField = null) {
-        if (!calculatorModal) {
-            console.error("ERRO em openCalculator: calculatorModal é NULO!");
-            return;
-        }
+        if (!calculatorModal) return;
         if (typeof window.resetCalculatorModalPosition === 'function') {
             window.resetCalculatorModalPosition();
         }
-        calculatorModal.style.display = "flex";
+        
+        activeInputField = inputField;
+        resetCalculator();
 
-        if (inputField) {
-            activeInputField = inputField;
-            if (inputField.value && inputField.value.trim() !== "") {
-                const parsedValue = parseFinancialInput(inputField.value);
-                if (!isNaN(parsedValue)) {
-                    currentInput = parsedValue.toString(); // Use the parsed value without comma
-                    resetScreen = true;
-                    expressionMode = false;
+        if (inputField && inputField.value && inputField.value.trim() !== "") {
+            const parsedValue = typeof parseFinancialInput === 'function' ? parseFinancialInput(inputField.value) : parseFloat(inputField.value.replace(/\./g, '').replace(',', '.'));
+            if (!isNaN(parsedValue)) {
+                currentInput = parsedValue.toString();
+                if (rpnMode) {
+                    rpnEnter();
                 } else {
-                    resetCalculator();
+                    resetScreen = true;
                 }
-            } else {
-                resetCalculator();
             }
-        } else {
-            activeInputField = null;
-            resetCalculator();
         }
-
         updateDisplay();
-    }
-
-
-    function updateDisplay() {
-        if (calcDisplay) {
-            calcDisplay.value = currentInput.replace('.', ',');
-        }
+        calculatorModal.style.display = "flex";
     }
 
     function inputDigit(digit) {
-        if (resetScreen) {
-            const lastChar = currentInput.charAt(currentInput.length - 1);
-            if (!'+-×÷^('.includes(lastChar) && currentInput !== 'Erro') {
-                if (shouldInsertMultiplication(currentInput)) {
-                    currentInput += '×' + digit;
-                } else {
-                    currentInput = digit;
-                }
-            } else {
-                if (currentInput === 'Erro') currentInput = digit;
-                else currentInput += digit;
-            }
-            resetScreen = false;
-        } else {
-            if (currentInput.charAt(currentInput.length - 1) === ')' && /\d$/.test(digit)) {
-                 currentInput += '×' + digit;
+        if (rpnMode) {
+            if (isEntering) {
+                if (DEBUG_RPN) console.log(`[RPN] inputDigit: isEntering é true. Trocando '${currentInput}' por '${digit}'`);
+                currentInput = digit;
+                isEntering = false;
             } else {
                 currentInput = (currentInput === '0') ? digit : currentInput + digit;
             }
-        }
-        expressionMode = true;
-    }
-
-    function inputConstant(constantName) {
-        const value = MATH_CONSTANTS[constantName].toString();
-        if (resetScreen && !'+-×÷^('.includes(currentInput.charAt(currentInput.length - 1)) && currentInput !== 'Erro') {
-            if (shouldInsertMultiplication(currentInput)) {
-                currentInput += '×' + value;
-            } else {
-                currentInput = value;
-            }
         } else {
-            if (shouldInsertMultiplication(currentInput)) {
-                currentInput += '×' + value;
+            if (resetScreen) {
+                currentInput = digit;
+                resetScreen = false;
             } else {
-                 currentInput = (currentInput === '0' || currentInput === 'Erro') ? value : currentInput + value;
+                currentInput = (currentInput === '0') ? digit : currentInput + digit;
             }
-        }
-        expressionMode = true;
-        resetScreen = true;
-    }
-
-    function inputParenthesis(parenthesis) {
-        expressionMode = true;
-        if (parenthesis === '(') {
-            if (shouldInsertMultiplication(currentInput)) {
-                currentInput += '×' + parenthesis;
-            } else {
-                currentInput = (currentInput === '0' || currentInput === 'Erro') ? parenthesis : currentInput + parenthesis;
-            }
-        } else { // ')'
-            let openCount = (currentInput.match(/\(/g) || []).length;
-            let closeCount = (currentInput.match(/\)/g) || []).length;
-            const lastChar = currentInput.charAt(currentInput.length - 1);
-            if (openCount > closeCount && !'+-×÷^('.includes(lastChar) && lastChar !== 'Erro') {
-                currentInput += parenthesis;
-            } else {
-                return;
-            }
-        }
-        resetScreen = false;
-    }
-
-    function calculateFunction(funcKey) {
-        const displayFunction = funcKey;
-        expressionMode = true;
-        if (shouldInsertMultiplication(currentInput)) {
-            currentInput += '×' + displayFunction + '(';
-        } else {
-            currentInput = (currentInput === '0' || currentInput === 'Erro') ? (displayFunction + '(') : (currentInput + displayFunction + '(');
-        }
-        resetScreen = false;
-    }
-
-    function inputDecimal() {
-        const match = currentInput.match(/[^+\-×÷^()]*$/);
-        const lastNumberSegment = match ? match[0] : "";
-        if (lastNumberSegment.includes('.')) return;
-
-        if (resetScreen) {
-            const lastChar = currentInput.charAt(currentInput.length - 1);
-            if ('+-×÷^('.includes(lastChar) || currentInput === 'Erro') {
-                currentInput = (currentInput === 'Erro' ? '0.' : currentInput + '0.');
-            } else {
-                 if (shouldInsertMultiplication(currentInput)){
-                     currentInput += '×0.';
-                 } else {
-                     currentInput = '0.';
-                 }
-            }
-            resetScreen = false;
-        } else {
-            const lastChar = currentInput.charAt(currentInput.length - 1);
-            if (currentInput === '0') {
-                currentInput = '0.';
-            } else if ('+-×÷^('.includes(lastChar)) {
-                currentInput += '0.';
-            } else {
-                currentInput += '.';
-            }
-        }
-        expressionMode = true;
-    }
-
-    function handleOperator(operatorAction) {
-        const operatorChar = getOperatorChar(operatorAction);
-        const lastChar = currentInput.charAt(currentInput.length - 1);
-
-        if (currentInput === 'Erro') return;
-
-        if ('+-×÷^'.includes(lastChar) && lastChar !== '(') {
-            if (operatorChar === '-' && (lastChar === '×' || lastChar === '÷' || lastChar === '^')) {
-                currentInput += operatorChar;
-            } else {
-                currentInput = currentInput.slice(0, -1) + operatorChar;
-            }
-        } else if (lastChar !== '(' || operatorChar === '-') {
-            currentInput += operatorChar;
-        } else {
-            return;
-        }
-        expressionMode = true;
-        resetScreen = true;
-    }
-
-    function negateValue() {
-        if (currentInput === 'Erro') return;
-        if (!expressionMode && currentInput !== '0' && !isNaN(parseFloat(currentInput))) {
-            currentInput = (parseFloat(currentInput) * -1).toString();
-            updateDisplay();
-            return;
-        }
-        if (currentInput === '0') { currentInput = '-'; expressionMode = true; updateDisplay(); return; }
-        if (currentInput === '-') { currentInput = '0'; expressionMode = true; updateDisplay(); return; }
-
-        let i = currentInput.length - 1;
-        let nesting = 0;
-
-        while (i >= 0) {
-            const char = currentInput[i];
-            if (char === ')') nesting++;
-            else if (char === '(') nesting--;
-            if (nesting === 0 && ('+-×÷^'.includes(char))) { i++; break; }
-            if (nesting < 0) { i++; break; }
-            i--;
-        }
-        if (i < 0) i = 0;
-
-        const prefix = currentInput.substring(0, i);
-        let term = currentInput.substring(i);
-
-        if (term.startsWith('-(') && term.endsWith(')')) {
-            term = term.substring(2, term.length - 1);
-        } else if (term.startsWith('-')) {
-            term = term.substring(1);
-        } else if (term.startsWith('+')) {
-            term = '-' + term.substring(1);
-        } else {
-            if (term.includes('(') || FUNCTION_NAMES.some(fn => term.startsWith(fn)) || term.includes(' ')) {
-                term = `-(${term})`;
-            } else {
-                term = '-' + term;
-            }
-        }
-        currentInput = prefix + term;
-        expressionMode = true;
-        resetScreen = false;
-    }
-
-    function inputPercent() {
-        if (currentInput === 'Erro') return;
-        const lastChar = currentInput.charAt(currentInput.length - 1);
-        if (/\d$/.test(lastChar) || lastChar === ')') {
-            currentInput += '%';
             expressionMode = true;
         }
     }
 
-    function calculateInverse() {
-        if (currentInput === 'Erro' || currentInput === '0') {
-            if (currentInput === '0') alert('Erro: Divisão por zero!');
+    function inputConstant(constantName) {
+        const value = MATH_CONSTANTS[constantName].toString();
+        if (rpnMode) {
+            if (!isEntering) rpnEnter();
+            currentInput = value;
+            isEntering = true;
+        } else {
+            if (resetScreen) {
+                currentInput = value;
+                resetScreen = false;
+            } else {
+                currentInput += value;
+            }
+            expressionMode = true;
+        }
+    }
+
+    function inputParenthesis(parenthesis) {
+        if (rpnMode) return;
+        if (resetScreen) {
+            currentInput = parenthesis;
+            resetScreen = false;
+        } else {
+             currentInput = (currentInput === '0') ? parenthesis : currentInput + parenthesis;
+        }
+        expressionMode = true;
+    }
+
+    function calculateFunction(funcKey) {
+        if (rpnMode) {
+            handleRpnOperation(funcKey);
+        } else {
+            const displayFunction = funcKey + '(';
+            if (resetScreen) {
+                currentInput = displayFunction;
+                resetScreen = false;
+            } else {
+                currentInput = (currentInput === '0') ? displayFunction : currentInput + displayFunction;
+            }
+            expressionMode = true;
+        }
+    }
+
+    function inputDecimal() {
+        if (rpnMode) {
+            if (isEntering) {
+                currentInput = '0.';
+                isEntering = false;
+            } else if (!currentInput.includes('.')) {
+                currentInput += '.';
+            }
+        } else {
+            if (resetScreen) {
+                currentInput = '0.';
+                resetScreen = false;
+            }
+            const lastNumberMatch = currentInput.match(/[\d.]+$/);
+            if (lastNumberMatch && lastNumberMatch[0].includes('.')) {
+                return;
+            }
+            currentInput += '.';
+            expressionMode = true;
+        }
+    }
+    
+    function handleOperator(operatorAction) {
+        if (rpnMode) {
+            handleRpnOperation(operatorAction);
             return;
         }
-        let i = currentInput.length - 1;
-        let nesting = 0;
-        while (i >= 0) {
-            const char = currentInput[i];
-            if (char === ')') nesting++; else if (char === '(') nesting--;
-            if (nesting === 0 && ('+-×÷^'.includes(char))) { i++; break; }
-            if (nesting < 0) { i++; break;}
-            i--;
+        const operatorChar = getOperatorChar(operatorAction);
+        if (currentInput === 'Erro') return;
+        const lastChar = currentInput.slice(-1);
+        if ('+-×÷^'.includes(lastChar)) {
+            currentInput = currentInput.slice(0, -1) + operatorChar;
+        } else {
+            currentInput += operatorChar;
         }
-        if (i < 0) i = 0;
-        const prefix = currentInput.substring(0, i);
-        const term = currentInput.substring(i);
-        if (term === '0') { alert('Erro: Divisão por zero!'); return; }
-
-        currentInput = prefix + `(1÷${term})`;
         expressionMode = true;
         resetScreen = false;
+    }
+    
+    function negateValue() {
+        if (currentInput === 'Erro') return;
+        if (rpnMode) {
+            currentInput = (parseFloat(currentInput.replace(',', '.')) * -1).toString();
+            if(isEntering) isEntering = false;
+        } else {
+            const match = currentInput.match(/([+\-×÷^])?([0-9.]+)$/);
+            if (match) {
+                const prefixIndex = match.index + (match[1] ? 1 : 0);
+                const prefix = currentInput.substring(0, prefixIndex);
+                const sign = match[1];
+                const number = match[2];
+                if (sign === '+') {
+                    currentInput = currentInput.substring(0, prefixIndex - 1) + '-' + number;
+                } else if (sign === '-') {
+                    const charBeforeSign = currentInput.charAt(prefixIndex - 2);
+                    if ('×÷^('.includes(charBeforeSign) || prefixIndex === 1) {
+                        currentInput = currentInput.substring(0, prefixIndex - 1) + number;
+                    } else {
+                         currentInput = currentInput.substring(0, prefixIndex - 1) + '+' + number;
+                    }
+                } else {
+                    currentInput = prefix + '-' + number;
+                }
+            } else if (!isNaN(parseFloat(currentInput))) {
+                 currentInput = (parseFloat(currentInput) * -1).toString();
+            }
+        }
+    }
+
+    function inputPercent() {
+        if (rpnMode) {
+            currentInput = (parseFloat(currentInput.replace(',', '.')) / 100).toString();
+            isEntering = true; 
+        } else {
+            if (currentInput === 'Erro') return;
+            const lastChar = currentInput.slice(-1);
+            if (!isNaN(parseInt(lastChar)) || lastChar === ')') {
+                currentInput += '%';
+            }
+        }
+    }
+
+    function calculateInverse() {
+        if (rpnMode) {
+            handleRpnOperation('inverse');
+        } else {
+            if (currentInput === 'Erro') return;
+            if (!isNaN(parseFloat(currentInput))) {
+                const value = parseFloat(currentInput);
+                currentInput = (value === 0) ? 'Erro' : (1 / value).toString();
+                resetScreen = true;
+            }
+        }
     }
 
     function formatResult(value) {
@@ -404,9 +425,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return parseFloat(stringValue).toString();
     }
 
-    function calculate() {
-        if (currentInput === 'Erro') return;
-        let expressionToEvaluate = currentInput.replace(/,/g, '.');
+    function calculate() { // Apenas para modo ALG
+        if (rpnMode || currentInput === 'Erro') return;
+        if (DEBUG_ALG) console.log(`[ALG] ==> calculate() chamado. Expressão inicial: "${currentInput}"`);
+        let expressionToEvaluate = currentInput;
 
         try {
             let openCount = (expressionToEvaluate.match(/\(/g) || []).length;
@@ -414,119 +436,76 @@ document.addEventListener('DOMContentLoaded', function() {
             if (openCount > closeCount) {
                 expressionToEvaluate += ')'.repeat(openCount - closeCount);
             }
-
             expressionToEvaluate = expressionToEvaluate
-                .replace(/π/g, `(${MATH_CONSTANTS.pi})`)
-                .replace(/e(?!xp)/g, `(${MATH_CONSTANTS.euler})`)
-                .replace(/φ/g, `(${MATH_CONSTANTS.phi})`)
-                .replace(/sqrt\(/g, 'Math.sqrt(')
-                .replace(/log\(/g, 'Math.log10(')
-                .replace(/ln\(/g, 'Math.log(')
-                .replace(/exp\(/g, 'Math.exp(')
-                .replace(/×/g, '*')
-                .replace(/÷/g, '/')
-                .replace(/\^/g, '**')
-                .replace(/(\d+\.?\d*|\([\s\S]*?\))%/g, (match, p1) => `(${p1}/100)`);
-
+                .replace(/,/g, '.').replace(/π/g, `(${MATH_CONSTANTS.pi})`)
+                .replace(/e(?!xp)/g, `(${MATH_CONSTANTS.euler})`).replace(/φ/g, `(${MATH_CONSTANTS.phi})`)
+                .replace(/sqrt\(/g, 'Math.sqrt(').replace(/log\(/g, 'Math.log10(')
+                .replace(/ln\(/g, 'Math.log(').replace(/exp\(/g, 'Math.exp(')
+                .replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**')
+                .replace(/(\d+\.?\d*|\([\s\S]+?\))%/g, (match, p1) => `(${p1}/100)`);
+            
+            if (DEBUG_ALG) console.log(`[ALG] Expressão formatada para eval(): "${expressionToEvaluate}"`);
             const result = eval(expressionToEvaluate);
+            if (DEBUG_ALG) console.log(`[ALG] Resultado do eval(): ${result}`);
 
-            if (result === undefined || result === null || !isFinite(result)) {
-                currentInput = 'Erro';
-            } else {
-                currentInput = formatResult(result);
-            }
+            currentInput = (result === undefined || result === null || !isFinite(result)) ? 'Erro' : formatResult(result);
             _resetCalculationInternalState();
-
         } catch (error) {
             console.error("Erro ao avaliar a expressão:", error, "Expressão:", expressionToEvaluate);
             currentInput = 'Erro';
             _resetCalculationInternalState();
         }
-        updateDisplay();
+        if (DEBUG_ALG) console.log(`[ALG] <== calculate() finalizado. Visor será: "${currentInput}"`);
     }
 
     function backspace() {
-        if (currentInput === 'Erro') {
-            resetCalculator();
-            return;
-        }
-        for (const func of FUNCTION_NAMES) {
-            if (currentInput.endsWith(func + '(')) {
-                currentInput = currentInput.slice(0, -(func.length + 1));
-                if (currentInput.endsWith('×')) {
-                     currentInput = currentInput.slice(0, -1);
-                }
-                if (currentInput === '') currentInput = '0';
+        if (rpnMode) {
+            if (!isEntering) {
+                currentInput = (currentInput.length > 1) ? currentInput.slice(0, -1) : '0';
+                if(currentInput === '0') isEntering = true;
+            }
+        } else {
+            if (currentInput === 'Erro' || currentInput.length === 1) {
+                resetCalculator();
                 return;
             }
-        }
-        currentInput = currentInput.slice(0, -1);
-        if (currentInput === '') {
-            currentInput = '0';
-            expressionMode = false;
-        }
-        if (!/[\+\-\×\÷\^\(\)%]/.test(currentInput) && !FUNCTION_NAMES.some(fn => currentInput.includes(fn))) {
-             expressionMode = false;
+            currentInput = currentInput.slice(0, -1);
         }
     }
 
     function clearEntry() {
-        if (currentInput === 'Erro') {
-            resetCalculator();
-            return;
-        }
-        const match = currentInput.match(/^(.*)([+\-×÷^])([^+\-×÷^(]*)$/);
+        if (rpnMode) return;
+        const match = currentInput.match(/^(.*)([+\-×÷^])([^+\-×÷^]*)$/);
         if (match && match[3] !== "") {
-            currentInput = match[1] + match[2];
-        } else if (match && match[3] === "") {
-            currentInput = match[1];
+            currentInput = currentInput.substring(0, match[0].length - match[3].length);
         } else {
-             for (const func of FUNCTION_NAMES) {
-                if (currentInput.startsWith(func + '(') && currentInput.length > func.length + 1 && currentInput.charAt(currentInput.length - 1) !== '(') {
-                     currentInput = func + '(';
-                     return;
-                } else if (currentInput === func + '(') {
-                     currentInput = '0'; expressionMode = false;
-                     return;
-                }
-            }
             currentInput = '0';
-            expressionMode = false;
-        }
-        if (currentInput === "") {
-            currentInput = '0';
-            expressionMode = false;
         }
         resetScreen = false;
     }
 
     function resetCalculator() {
+        if (rpnMode && DEBUG_RPN) console.warn("--- [RPN] CALCULADORA RESETADA ---");
+        if (!rpnMode && DEBUG_ALG) console.warn("--- [ALG] CALCULADORA RESETADA ---");
+        
         currentInput = '0';
-        _resetCalculationInternalState();
+        previousInput = '';
+        calculationOperator = '';
         resetScreen = false;
+        expressionMode = false;
+        rpnStack = [0, 0, 0, 0];
+        isEntering = true;
     }
 
     function applyValueToField() {
         if (activeInputField) {
+            if (!rpnMode) calculate();
             if (currentInput === 'Erro') {
                 if (calculatorModal) calculatorModal.style.display = "none";
-                activeInputField.focus();
-                activeInputField = null;
-                return;
+                activeInputField.focus(); activeInputField = null; return;
             }
-            if (expressionMode && /[\+\-\×\÷\^\(\)%]/.test(currentInput) && !resetScreen) {
-                calculate();
-                if (currentInput === 'Erro') {
-                     if (calculatorModal) calculatorModal.style.display = "none";
-                     activeInputField.focus();
-                     activeInputField = null;
-                     return;
-                }
-            }
-            
             let valueToApply = currentInput.replace('.', ',');
             const numericValue = parseFloat(currentInput);
-            
             if (!isNaN(numericValue)) {
                 const rateFieldIds = ['rate', 'mirrFinancingRate', 'mirrReinvestmentRate', 'npvDiscountRate', 'npvFinancingRate', 'npvReinvestmentRate'];
                 if (rateFieldIds.includes(activeInputField.id)) {
@@ -537,248 +516,201 @@ document.addEventListener('DOMContentLoaded', function() {
                     valueToApply = numericValue.toFixed(2).replace('.', ',');
                 }
             }
-
             activeInputField.value = valueToApply;
             if (calculatorModal) calculatorModal.style.display = "none";
-            
             activeInputField.dispatchEvent(new Event('input', { bubbles: true }));
             activeInputField.dispatchEvent(new Event('change', { bubbles: true }));
-            
             activeInputField.focus();
             activeInputField = null;
         } else {
             if (calculatorModal) calculatorModal.style.display = "none";
         }
     }
+    
+    // -------------------------------------------------------------------
+    // LÓGICA DE OPERAÇÃO RPN
+    // -------------------------------------------------------------------
+    function handleRpnOperation(action) {
+        if (DEBUG_RPN) console.log(`[RPN] ==> handleRpnOperation('${action}') chamado. Estado ANTES:`, { stack: JSON.parse(JSON.stringify(rpnStack)), currentInput: currentInput, isEntering: isEntering });
 
-    function handleKeyboardInput(event) {
-        if (calculatorModal && calculatorModal.style.display !== 'flex') return;
-        if (event.ctrlKey || event.metaKey) return;
+        if (isEntering && action !== 'swap' && action !== 'rollDown') {
+            if (DEBUG_RPN) console.log(`[RPN] isEntering é true, executando rpnEnter() automático antes da operação.`);
+            rpnEnter();
+        }
+        
+        let x = parseFloat(currentInput.replace(',', '.'));
+        let y = rpnStack[2];
+        let result;
 
-        let key = event.key;
-        if (key === 'Enter') key = '=';
+        if (DEBUG_RPN) console.log(`[RPN] Operandos para '${action}':`, { y: y, x: x });
 
-        if (currentInput === 'Erro') {
-            if (key === 'Escape') {
-                if (calculatorModal) calculatorModal.style.display = "none";
-                activeInputField = null;
-            } else if (key === 'Backspace' || key.toLowerCase() === 'c' || key === 'Delete') {
-                event.preventDefault();
-                resetCalculator();
-                updateDisplay();
-            } else if (/[0-9]/.test(key)) {
-                event.preventDefault();
-                currentInput = key;
-                resetScreen = false;
-                expressionMode = false;
-                updateDisplay();
-            } else {
-                event.preventDefault();
+        const twoOperandOps = ['add', 'subtract', 'multiply', 'divide', 'power'];
+        const oneOperandOps = ['inverse', 'sqrt', 'log', 'ln', 'exp'];
+
+        if (twoOperandOps.includes(action)) {
+            result = performRpnCalculation(action, y, x);
+            if (result.toString() !== 'Erro') {
+                 if (DEBUG_RPN) console.log(`[RPN] Operação de 2 operandos bem-sucedida. Executando rpnDrop().`);
+                 rpnDrop();
             }
-            return;
+        } else if (oneOperandOps.includes(action)) {
+            result = performRpnCalculation(action, x, null);
+        } else {
+            result = x;
         }
+        
+        if (DEBUG_RPN) console.log(`[RPN] Resultado do cálculo: ${result}`);
 
-        let keyHandled = true;
-        switch (key) {
-            case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-                inputDigit(key); break;
-            case '.': case ',': inputDecimal(); break;
-            case '+': handleOperator('add'); break;
-            case '-': handleOperator('subtract'); break;
-            case '*': handleOperator('multiply'); break;
-            case '/': handleOperator('divide'); break;
-            case '%': inputPercent(); break;
-            case '^': handleOperator('power'); break;
-            case '(': inputParenthesis('('); break;
-            case ')': inputParenthesis(')'); break;
-            case '=': calculate(); break;
-            case 'Escape':
-                if (calculatorModal) calculatorModal.style.display = "none";
-                activeInputField = null;
-                break;
-            case 'Backspace': backspace(); break;
-            case 'Delete': resetCalculator(); break;
-            default:
-                if (key.toLowerCase() === 'c') {
-                    resetCalculator();
-                } else if (key.toLowerCase() === 'p' && !event.shiftKey) {
-                    inputConstant('pi');
-                } else if (key.toLowerCase() === 'e' && !event.shiftKey && !event.altKey) {
-                    inputConstant('euler');
-                } else {
-                    keyHandled = false;
-                }
-                break;
-        }
+        currentInput = result.toString();
+        isEntering = true;
+        
+        if (DEBUG_RPN) console.log(`[RPN] <== handleRpnOperation('${action}') finalizado. Estado DEPOIS:`, { stack: JSON.parse(JSON.stringify(rpnStack)), currentInput: currentInput, isEntering: isEntering });
+    }
 
-        if(keyHandled) {
-            event.preventDefault();
-            updateDisplay();
+    function performRpnCalculation(operator, op1, op2) {
+        switch (operator) {
+            case 'add': return op1 + op2;
+            case 'subtract': return op1 - op2;
+            case 'multiply': return op1 * op2;
+            case 'divide': return op2 === 0 ? 'Erro' : op1 / op2;
+            case 'power': return Math.pow(op1, op2);
+            case 'inverse': return op1 === 0 ? 'Erro' : 1 / op1;
+            case 'sqrt': return op1 < 0 ? 'Erro' : Math.sqrt(op1);
+            case 'log': return op1 <= 0 ? 'Erro' : Math.log10(op1);
+            case 'ln': return op1 <= 0 ? 'Erro' : Math.log(op1);
+            case 'exp': return Math.exp(op1);
+            default: return 'Erro';
         }
     }
+
+    // -------------------------------------------------------------------
+    // EVENT LISTENERS E INICIALIZAÇÃO
+    // -------------------------------------------------------------------
     
     window.handleNumericInputKeydown = function(event) {
-        const allowedNonFunctionKeys = [
-            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-            'Delete', 'Backspace', 'Tab', 'Home', 'End',
-            'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'ContextMenu', 
-            'PageUp', 'PageDown', 'Insert', 'F5', 'F12', 'Enter' 
-        ];
-        if (allowedNonFunctionKeys.includes(event.key) || (event.key.startsWith('F') && event.key !== 'F1')) {
-            return;
-        }
-
+        const allowed = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Delete','Backspace','Tab','Home','End','Shift','Control','Alt','Meta','CapsLock','ContextMenu','PageUp','PageDown','Insert','F5','F12','Enter'];
+        if (allowed.includes(event.key) || (event.key.startsWith('F') && event.key !== 'F1')) return;
         if (event.key === 'F1') {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            const inputField = event.target;
-            openCalculator(inputField);
+            event.preventDefault(); event.stopPropagation();
+            openCalculator(event.target);
         }
     };
-
     window.handleNumericInputDblClick = function(event) {
-        event.preventDefault();
-        const inputField = event.target;
-        openCalculator(inputField);
+        event.preventDefault(); openCalculator(event.target);
     };
-
-
     function setupNumericInputs() {
-        // --- INÍCIO DA CORREÇÃO ---
-        const numericInputs = document.querySelectorAll(
-            'input[type="number"], input[type="text"][inputmode="decimal"], #periods, #rate, #payment, #presentValue, #futureValue, #mirrInitialInvestment, #mirrFinancingRate, #mirrReinvestmentRate, #irrInitialInvestment, #npvInitialInvestment, #npvDiscountRate, #npvFinancingRate, #npvReinvestmentRate'
-        );
-        // --- FIM DA CORREÇÃO ---
-           
+        const numericInputs = document.querySelectorAll('input[type="number"], input[type="text"][inputmode="decimal"]');
         numericInputs.forEach(input => {
             input.removeEventListener('keydown', window.handleNumericInputKeydown);
             input.addEventListener('keydown', window.handleNumericInputKeydown);
-            
             input.removeEventListener('dblclick', window.handleNumericInputDblClick);
             input.addEventListener('dblclick', window.handleNumericInputDblClick);
-            
-            input.title = "Pressione F1 ou duplo clique para acessar a calculadora"; 
-            
+            if (!input.title) input.title = "Pressione F1 ou duplo clique para acessar a calculadora";
             input.removeEventListener('focus', highlightInput);
             input.removeEventListener('blur', unhighlightInput);
             input.addEventListener('focus', highlightInput);
             input.addEventListener('blur', unhighlightInput);
         });
     }
-    
     function highlightInput() { this.classList.add('highlighted'); }
     function unhighlightInput() { this.classList.remove('highlighted'); }
-
-    updateDisplay();
-    setupNumericInputs();
-
     const observer = new MutationObserver(mutationsList => {
         for (const mutation of mutationsList) {
             if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach(node => {
                     if (node.nodeType === Node.ELEMENT_NODE) {
-                        const inputs = [];
-                        if (node.matches('input[type="number"], input[type="text"][inputmode="decimal"]')) {
-                            inputs.push(node);
-                        } else {
-                            inputs.push(...node.querySelectorAll('input[type="number"], input[type="text"][inputmode="decimal"]'));
-                        }
-                        
-                        inputs.forEach(input => {
-                            if (input.classList.contains('mirr-cash-flow-amount') || 
-                                input.classList.contains('mirr-cash-flow-quantity') ||
-                                input.classList.contains('irr-cash-flow-amount') || 
-                                input.classList.contains('irr-cash-flow-quantity') ||
-                                input.classList.contains('npv-cash-flow-amount') ||
-                                input.classList.contains('npv-cash-flow-quantity')) {
-                                
-                                input.removeEventListener('keydown', window.handleNumericInputKeydown);
-                                input.addEventListener('keydown', window.handleNumericInputKeydown);
-                                input.removeEventListener('dblclick', window.handleNumericInputDblClick);
-                                input.addEventListener('dblclick', window.handleNumericInputDblClick);
-                                input.title = "Pressione F1 ou duplo clique para acessar a calculadora";
-
-                                input.removeEventListener('focus', highlightInput);
-                                input.removeEventListener('blur', unhighlightInput);
-                                input.addEventListener('focus', highlightInput);
-                                input.addEventListener('blur', unhighlightInput);
-                            }
-                        });
+                        const inputs = node.matches('input[type="number"], input[type="text"][inputmode="decimal"]') ? [node] : [...node.querySelectorAll('input[type="number"], input[type="text"][inputmode="decimal"]')];
+                        inputs.forEach(input => setupNumericInputs());
                     }
                 });
             }
         }
     });
+    observer.observe(document.body, { childList: true, subtree: true });
 
-    const mainAppContainer = document.querySelector('.container') || document.body;
-    observer.observe(mainAppContainer, { childList: true, subtree: true });
-
-
-    if (calculatorBtn) {
-        calculatorBtn.addEventListener('click', function() {
-            openCalculator();
-        });
-    }
-
-    if (closeCalculatorModal) {
-        closeCalculatorModal.addEventListener('click', function() {
-            if (calculatorModal) {
-                calculatorModal.style.display = "none";
-                activeInputField = null;
-            }
-        });
-    }
+    if (algBtn) algBtn.addEventListener('click', () => setMode(false));
+    if (rpnBtn) rpnBtn.addEventListener('click', () => setMode(true));
     
-    if (calculatorModal) {
-        calculatorModal.addEventListener('keydown', handleKeyboardInput);
+    if (calculatorBtn) {
+        calculatorBtn.addEventListener('click', () => openCalculator());
     }
-
+    if (closeCalculatorModal) {
+        closeCalculatorModal.addEventListener('click', () => {
+            if (calculatorModal) calculatorModal.style.display = "none";
+        });
+    }
 
     if (calcButtons && calcButtons.length > 0) {
         calcButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const action = button.dataset.action;
                 const buttonValue = button.textContent;
-
-                if (currentInput === 'Erro' && !['clear', 'backspace', 'clearEntry'].includes(action)) {
-                     return;
-                }
-                if (action === 'clearEntry' && currentInput === 'Erro'){
-                    resetCalculator();
-                    updateDisplay();
+                
+                if (currentInput === 'Erro' && action !== 'clear') {
                     return;
                 }
 
                 if (!action) {
                     inputDigit(buttonValue);
                 } else {
-                    switch(action) {
-                        case 'add': case 'subtract': case 'multiply': case 'divide': case 'power': handleOperator(action); break;
-                        case 'openParenthesis': inputParenthesis('('); break;
-                        case 'closeParenthesis': inputParenthesis(')'); break;
-                        case 'percent': inputPercent(); break;
-                        case 'sqrt': calculateFunction('sqrt'); break;
-                        case 'inverse': calculateInverse(); break;
-                        case 'negate': negateValue(); break;
-                        case 'log': calculateFunction('log'); break;
-                        case 'ln': calculateFunction('ln'); break;
-                        case 'exp': calculateFunction('exp'); break;
-                        case 'pi': inputConstant('pi'); break;
-                        case 'euler': inputConstant('euler'); break;
-                        case 'phi': inputConstant('phi'); break;
-                        case 'decimal': inputDecimal(); break;
-                        case 'clear': resetCalculator(); break;
-                        case 'clearEntry': clearEntry(); break;
-                        case 'backspace': backspace(); break;
-                        case 'equals': calculate(); break;
-                        case 'apply': applyValueToField(); break;
+                    if (rpnMode) {
+                        if (DEBUG_RPN) console.log(`--- [RPN] Clique no Botão --- Ação: '${action}', Valor: '${buttonValue}', Input Atual: '${currentInput}', isEntering: ${isEntering}`);
+                        switch (action) {
+                            case 'enter': rpnEnter(); break;
+                            case 'clearX': currentInput = '0'; isEntering = true; break;
+                            case 'swap':
+                                let tempY = rpnStack[2]; rpnStack[2] = parseFloat(currentInput.replace(',', '.')) || 0;
+                                currentInput = tempY.toString(); isEntering = false; break;
+                            case 'rollDown':
+                                let tempX = parseFloat(currentInput.replace(',', '.')) || 0;
+                                currentInput = rpnStack[2].toString(); rpnStack[2] = rpnStack[1];
+                                rpnStack[1] = rpnStack[0]; rpnStack[0] = tempX; isEntering = false; break;
+                            case 'add': case 'subtract': case 'multiply': case 'divide': case 'power':
+                            case 'inverse': case 'sqrt': case 'log': case 'ln': case 'exp':
+                                handleRpnOperation(action); break;
+                            default:
+                                switch(action) {
+                                    case 'percent': inputPercent(); break;
+                                    case 'decimal': inputDecimal(); break;
+                                    case 'negate': negateValue(); break;
+                                    case 'clear': resetCalculator(); break;
+                                    case 'backspace': backspace(); break;
+                                    case 'apply': applyValueToField(); break;
+                                    case 'pi': case 'euler': case 'phi': inputConstant(action); break;
+                                }
+                                break;
+                        }
+                    } else { // Ações do Modo ALG
+                        if (DEBUG_ALG) console.log(`--- [ALG] Clique no Botão --- Ação: '${action}', Valor: '${buttonValue}', Input Atual: '${currentInput}'`);
+                        switch(action) {
+                            case 'add': case 'subtract': case 'multiply': case 'divide': case 'power': handleOperator(action); break;
+                            case 'openParenthesis': inputParenthesis('('); break;
+                            case 'closeParenthesis': inputParenthesis(')'); break;
+                            case 'percent': inputPercent(); break;
+                            case 'sqrt': calculateFunction('sqrt'); break;
+                            case 'inverse': calculateInverse(); break;
+                            case 'negate': negateValue(); break;
+                            case 'log': calculateFunction('log'); break;
+                            case 'ln': calculateFunction('ln'); break;
+                            case 'exp': calculateFunction('exp'); break;
+                            case 'pi': inputConstant('pi'); break;
+                            case 'euler': inputConstant('euler'); break;
+                            case 'phi': inputConstant('phi'); break;
+                            case 'decimal': inputDecimal(); break;
+                            case 'clear': resetCalculator(); break;
+                            case 'clearEntry': clearEntry(); break;
+                            case 'backspace': backspace(); break;
+                            case 'equals': calculate(); break;
+                            case 'apply': applyValueToField(); break;
+                        }
                     }
                 }
                 updateDisplay();
             });
         });
-    } else {
-        console.warn("Botões da calculadora (.calc-btn) não encontrados ou o array está vazio.");
     }
+    
+    // --- INICIALIZAÇÃO ---
+    setupNumericInputs();
+    setMode(false);
 });

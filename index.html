@@ -127,62 +127,76 @@
                 <span class="close" id="closeCalculatorModal">×</span>
                 <div id="calculatorContent">
                     <h2>Calculadora</h2>
-                    <div class="basic-calculator">
-                        <div class="calc-display">
+
+                    <div class="calc-mode-selector">
+                        <button id="algBtn" class="calc-mode-btn active">ALG</button>
+                        <button id="rpnBtn" class="calc-mode-btn">RPN</button>
+                    </div>
+
+                    <div id="calcDisplayContainer">
+                        <div class="calc-display" id="algDisplay">
                             <input type="text" id="calcDisplay" readonly>
                         </div>
-                        <div class="calc-buttons">
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-clear" data-action="clear">C</button>
-                                <button class="calc-btn calc-btn-op" data-action="backspace">⌫</button>
-                                <button class="calc-btn calc-btn-op" data-action="clearEntry">CE</button>
-                                <button class="calc-btn calc-btn-equal" data-action="equals">=</button>
-                            </div>
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-op" data-action="openParenthesis">(</button>
-                                <button class="calc-btn calc-btn-op" data-action="closeParenthesis">)</button>
-                                <button class="calc-btn calc-btn-op" data-action="percent">%</button>
-                                <button class="calc-btn calc-btn-op" data-action="divide">÷</button>
-                            </div>
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-num">7</button>
-                                <button class="calc-btn calc-btn-num">8</button>
-                                <button class="calc-btn calc-btn-num">9</button>
-                                <button class="calc-btn calc-btn-op" data-action="multiply">×</button>
-                            </div>
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-num">4</button>
-                                <button class="calc-btn calc-btn-num">5</button>
-                                <button class="calc-btn calc-btn-num">6</button>
-                                <button class="calc-btn calc-btn-op" data-action="subtract">−</button>
-                            </div>
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-num">1</button>
-                                <button class="calc-btn calc-btn-num">2</button>
-                                <button class="calc-btn calc-btn-num">3</button>
-                                <button class="calc-btn calc-btn-op" data-action="add">+</button>
-                            </div>
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-num">0</button>
-                                <button class="calc-btn calc-btn-num" data-action="decimal">.</button>
-                                <button class="calc-btn calc-btn-op" data-action="inverse">1/x</button>
-                                <button class="calc-btn calc-btn-op" data-action="negate">±</button>
-                            </div>
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-op" data-action="sqrt">√</button>
-                                <button class="calc-btn calc-btn-op" data-action="power">x^y</button>
-                                <button class="calc-btn calc-btn-op" data-action="log">log</button>
-                                <button class="calc-btn calc-btn-op" data-action="ln">ln</button>
-                            </div>
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-const" data-action="pi">π</button>
-                                <button class="calc-btn calc-btn-const" data-action="euler">e</button>
-                                <button class="calc-btn calc-btn-const" data-action="phi">φ</button>
-                                <button class="calc-btn calc-btn-op" data-action="exp">e^x</button>
-                            </div>
-                            <div class="calc-row">
-                                <button class="calc-btn calc-btn-apply" data-action="apply">Aplicar</button>
-                            </div>
+
+                        <div class="calc-display-rpn" id="rpnDisplay" style="display: none;">
+                            <div class="rpn-stack-row"><span class="rpn-reg">T:</span><span id="stackT">0</span></div>
+                            <div class="rpn-stack-row"><span class="rpn-reg">Z:</span><span id="stackZ">0</span></div>
+                            <div class="rpn-stack-row"><span class="rpn-reg">Y:</span><span id="stackY">0</span></div>
+                            <div class="rpn-stack-row main"><span class="rpn-reg">X:</span><span id="stackX">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="calc-buttons">
+                        <div class="calc-row">
+                            <button class="calc-btn calc-btn-clear" data-action="clear">C</button>
+                            <button class="calc-btn calc-btn-op" data-action="backspace">⌫</button>
+                            <button id="ceClxBtn" class="calc-btn calc-btn-op" data-action="clearEntry">CE</button>
+                            <button id="equalsEnterBtn" class="calc-btn calc-btn-equal" data-action="equals">=</button>
+                        </div>
+                        <div class="calc-row">
+                            <button id="parenSwapBtn" class="calc-btn calc-btn-op" data-action="openParenthesis">(</button>
+                            <button id="parenRollBtn" class="calc-btn calc-btn-op" data-action="closeParenthesis">)</button>
+                            <button class="calc-btn calc-btn-op" data-action="percent">%</button>
+                            <button class="calc-btn calc-btn-op" data-action="divide">÷</button>
+                        </div>
+                        <div class="calc-row">
+                            <button class="calc-btn calc-btn-num">7</button>
+                            <button class="calc-btn calc-btn-num">8</button>
+                            <button class="calc-btn calc-btn-num">9</button>
+                            <button class="calc-btn calc-btn-op" data-action="multiply">×</button>
+                        </div>
+                        <div class="calc-row">
+                            <button class="calc-btn calc-btn-num">4</button>
+                            <button class="calc-btn calc-btn-num">5</button>
+                            <button class="calc-btn calc-btn-num">6</button>
+                            <button class="calc-btn calc-btn-op" data-action="subtract">−</button>
+                        </div>
+                        <div class="calc-row">
+                            <button class="calc-btn calc-btn-num">1</button>
+                            <button class="calc-btn calc-btn-num">2</button>
+                            <button class="calc-btn calc-btn-num">3</button>
+                            <button class="calc-btn calc-btn-op" data-action="add">+</button>
+                        </div>
+                        <div class="calc-row">
+                            <button class="calc-btn calc-btn-num">0</button>
+                            <button class="calc-btn calc-btn-num" data-action="decimal">.</button>
+                            <button class="calc-btn calc-btn-op" data-action="inverse">1/x</button>
+                            <button class="calc-btn calc-btn-op" data-action="negate">±</button>
+                        </div>
+                        <div class="calc-row">
+                            <button class="calc-btn calc-btn-op" data-action="sqrt">√</button>
+                            <button class="calc-btn calc-btn-op" data-action="power">x^y</button>
+                            <button class="calc-btn calc-btn-op" data-action="log">log</button>
+                            <button class="calc-btn calc-btn-op" data-action="ln">ln</button>
+                        </div>
+                        <div class="calc-row">
+                            <button class="calc-btn calc-btn-const" data-action="pi">π</button>
+                            <button class="calc-btn calc-btn-const" data-action="euler">e</button>
+                            <button class="calc-btn calc-btn-const" data-action="phi">φ</button>
+                            <button class="calc-btn calc-btn-op" data-action="exp">e^x</button>
+                        </div>
+                        <div class="calc-row">
+                            <button class="calc-btn calc-btn-apply" data-action="apply">Aplicar</button>
                         </div>
                     </div>
                 </div>
@@ -314,7 +328,7 @@ Deve ser maior que -100%.</span></span>
                     <div class="form-group">
                         <label for="npvFinancingRate">Taxa de Financiamento (%):
                             <span class="tooltip">?<span class="tooltiptext">A taxa de juros usada para descontar especificamente os fluxos de caixa negativos intermediários (custos, após o FC0) a valor presente no cálculo do VPL (Ajustado).
-Reflete o custo de financiar esses desembolsos.
+Reflete o custo de financiar esses desembolos.
 Se 0% ou não especificada, a 'Taxa de Desconto' principal será usada para esses fluxos negativos no cálculo ajustado.
 Deve ser maior que -100% (se não for zero).</span></span>
                         </label>
