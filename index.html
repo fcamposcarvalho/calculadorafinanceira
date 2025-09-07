@@ -189,7 +189,13 @@
                             <button class="calc-btn calc-btn-op" data-action="log">log</button>
                             <button class="calc-btn calc-btn-op" data-action="ln">ln</button>
                         </div>
-                        <div class="calc-row">
+						<div class="calc-row rpn-only-row">
+							<button class="calc-btn" data-action="factorial" title="Calcula o fatorial (n!). Limite: 69!">n!</button>
+							<button class="calc-btn" data-action="dateDiff" title="Diferença de dias. Data inicial e depois data final. Use o formato: dd.mmyyyy">ΔDYS</button>
+							<button class="calc-btn" data-action="percentDiff" title="Variação %. Entrada: [valor antigo] ENTER [valor novo]">Δ%</button>
+							<button class="calc-btn" data-action="equivRate" title="Taxa Equivalente. Entrada: [i] ENTER [n]">taxa</button>
+						</div>
+						<div class="calc-row">
                             <button class="calc-btn calc-btn-const" data-action="pi">π</button>
                             <button class="calc-btn calc-btn-const" data-action="euler">e</button>
                             <button class="calc-btn calc-btn-const" data-action="phi">φ</button>
