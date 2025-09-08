@@ -298,13 +298,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function inputDigit(digit) {
         if (rpnMode) {
+            // AJUSTE FINAL: Implementa o "Stack Lift" automático.
             if (isEntering) {
+                // Se o valor em X é diferente de Y, significa que um cálculo acabou de acontecer.
+                // Então, "salvamos" o resultado na pilha antes de começar o novo número.
+                if (parseFloat(currentInput.replace(',', '.')) !== rpnStack[2]) {
+                    rpnEnter();
+                }
                 currentInput = digit;
                 isEntering = false;
             } else {
                 currentInput = (currentInput === '0') ? digit : currentInput + digit;
             }
-        } else {
+        } else { // MODO ALG (Inalterado)
             if (resetScreen) {
                 currentInput = digit;
                 resetScreen = false;
@@ -519,6 +525,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function resetCalculator() {
+        if (DEBUG_RPN && rpnMode) console.warn("--- [RPN] CALCULADORA RESETADA ---");
+        if (DEBUG_ALG && !rpnMode) console.warn("--- [ALG] CALCULADORA RESETADA ---");
         currentInput = '0';
         previousInput = '';
         calculationOperator = '';
