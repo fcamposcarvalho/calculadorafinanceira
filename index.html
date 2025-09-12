@@ -77,9 +77,12 @@
 
 				<div class="button-group">
 					<button class="btn-primary" id="calculateBtn">Calcular</button>
-					<button class="btn-info" id="amortizationPriceBtn">Amortização(PRICE)</button>
-					<button class="btn-info" id="amortizationSacBtn" title="Se um 'Valor Futuro FV' for informado, este valor será o saldo residual ao final do prazo.">Amortização(SAC)</button>
-                    <button class="btn-tool" id="calculatorBtn">Calculadora</button>
+					<button class="btn-info" id="amortizationPriceBtn">AMORT(PRICE)</button>
+					<div class="button-with-tooltip">
+						<button class="btn-info" id="amortizationSacBtn">AMORT(SAC)</button>
+						<span class="tooltip-trigger-icon" data-tooltip-message="Se um 'Valor Futuro FV' for informado, este valor será o saldo residual ao final do prazo.">?</span>
+					</div>					
+					<button class="btn-tool" id="calculatorBtn">Calculadora</button>
                     <button class="btn-info" id="irrBtn">TIR</button>
                     <button class="btn-tool" id="mirrBtn">TIRM</button>
                     <button class="btn-info" id="adjNpvBtn">VPL (Ajustado)</button>
