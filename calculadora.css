@@ -849,36 +849,32 @@ input[type="text"].highlighted {
 }
 
 /* --- Estilos para Botão com Ícone de Tooltip (CORRIGIDO) --- */
-.button-with-tooltip {
-    position: relative; /* Essencial para o posicionamento do ícone */
-    width: 100%;
+/* --- Estilos para Botão com Ícone (ALINHAMENTO CENTRALIZADO) --- */
+
+/* ADICIONE esta nova regra */
+.btn-with-icon {
+    display: flex;
+    justify-content: center; /* Centraliza o conteúdo (texto + ícone) */
+    align-items: center;    /* Alinha verticalmente */
+    gap: 8px;               /* Espaço entre o texto e o ícone */
 }
 
-.button-with-tooltip .btn-info {
-    width: 100%; /* Faz o botão preencher o espaço do container */
-}
-
+/* SUBSTITUA a regra antiga por esta */
 .tooltip-trigger-icon {
-    position: absolute; /* Tira o ícone do fluxo normal do layout */
-    top: 50%;
-    right: 5px; /* Posiciona o ícone 10px para fora da borda direita do container */
-    transform: translateY(-50%); /* Centraliza o ícone verticalmente de forma precisa */
-
-    /* Estilos visuais que já tínhamos */
+    /* Removemos position: absolute e as coordenadas */
     display: inline-block;
     background-color: var(--primary-color);
     color: white;
     font-weight: bold;
     font-family: 'Segoe UI', sans-serif;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
+    width: 22px;  /* Levemente menor para um melhor ajuste */
+    height: 22px;
+    line-height: 22px; /* Ajustado para a nova altura */
     text-align: center;
     cursor: help;
     user-select: none;
     transition: background-color 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Efeito sutil de profundidade */
 }
 
 .tooltip-trigger-icon:hover {
