@@ -347,41 +347,53 @@ document.addEventListener('DOMContentLoaded', function() {
         historyModal.style.display = "flex";
     }
 
-    function showPriceAmortizationTable() {
-        if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
-
-        if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (PRICE)";
-
-        try {
-            hideError();
-            const n = parseInt(periodsInput.value) || 0;
-            const i = parseFinancialInput(rateInput.value) / 100;
-            const pv = parseFinancialInput(presentValueInput.value);
-            const fv = parseFinancialInput(futureValueInput.value);
-
-            if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
-            if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para a amortização.");
-            
-            const pmtVal = calculatePayment(n, i, -Math.abs(pv), fv);
-
-            const amortizationData = calculatePriceAmortizationTable(n, i, pmtVal, pv, fv);
-            
-            if (amortizationData.length === 0) {
-                amortizationContent.innerHTML = '<div class="empty-amortization">Não foi possível gerar a tabela com os valores fornecidos. Verifique os dados.</div>';
-            } else {
-                displayAmortizationData(amortizationData);
-            }
-
-            if (amortizationModalContentEl) {
-                amortizationModalContentEl.style.position = '';
-                amortizationModalContentEl.style.left = '';
-                amortizationModalContentEl.style.top = '';
-            }
-            amortizationModal.style.display = "flex";
-        } catch (error) {
-            showError("Amortização (PRICE): " + error.message);
-        }
-    }
+	function showPriceAmortizationTable() {
+		if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
+	
+		if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (PRICE)";
+	
+		try {
+			hideError();
+			const n = parseInt(periodsInput.value) || 0;
+			const i = parseFinancialInput(rateInput.value) / 100;
+			const pv = parseFinancialInput(presentValueInput.value); // Pega o PV como está no campo
+			const fv = parseFinancialInput(futureValueInput.value);
+			const pmtFromInput = parseFinancialInput(paymentInput.value);
+	
+			if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
+			if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para a amortização.");
+			
+			// CORREÇÃO: Passa o 'pv' diretamente, sem forçar sinal negativo.
+			// Isso alinha o cálculo com o do botão "Calcular".
+			const pmtCorreto = calculatePayment(n, i, pv, fv);
+			
+			let pmtParaTabela;
+	
+			// Lógica para usar o valor correto (seja do campo ou recém-calculado)
+			if (pmtFromInput === 0 || Math.abs(pmtCorreto - pmtFromInput) > 0.01) {
+				pmtParaTabela = pmtCorreto;
+			} else {
+				pmtParaTabela = pmtFromInput;
+			}
+	
+			const amortizationData = calculatePriceAmortizationTable(n, i, pmtParaTabela, pv, fv);
+			
+			if (amortizationData.length === 0) {
+				amortizationContent.innerHTML = '<div class="empty-amortization">Não foi possível gerar a tabela com os valores fornecidos. Verifique os dados.</div>';
+			} else {
+				displayAmortizationData(amortizationData);
+			}
+	
+			if (amortizationModalContentEl) {
+				amortizationModalContentEl.style.position = '';
+				amortizationModalContentEl.style.left = '';
+				amortizationModalContentEl.style.top = '';
+			}
+			amortizationModal.style.display = "flex";
+		} catch (error) {
+			showError("Amortização (PRICE): " + error.message);
+		}
+	}
 
     function showSacAmortizationTable() {
         if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
