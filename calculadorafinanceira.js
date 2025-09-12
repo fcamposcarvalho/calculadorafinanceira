@@ -356,20 +356,22 @@ document.addEventListener('DOMContentLoaded', function() {
 			hideError();
 			const n = parseInt(periodsInput.value) || 0;
 			const i = parseFinancialInput(rateInput.value) / 100;
-			const pv = parseFinancialInput(presentValueInput.value); // Pega o PV como está no campo
+			const pv = parseFinancialInput(presentValueInput.value);
 			const fv = parseFinancialInput(futureValueInput.value);
 			const pmtFromInput = parseFinancialInput(paymentInput.value);
 	
 			if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
 			if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para a amortização.");
 			
-			// CORREÇÃO: Passa o 'pv' diretamente, sem forçar sinal negativo.
-			// Isso alinha o cálculo com o do botão "Calcular".
-			const pmtCorreto = calculatePayment(n, i, pv, fv);
+			// CORREÇÃO FINAL: O resultado do cálculo é imediatamente arredondado para 2 casas decimais,
+			// garantindo que o valor usado seja sempre idêntico ao que o botão "Calcular" exibiria.
+			// O parseFloat garante que o valor volte a ser um número após o toFixed (que retorna uma string).
+			const pmtCorreto = parseFloat(calculatePayment(n, i, pv, fv).toFixed(2));
 			
 			let pmtParaTabela;
 	
-			// Lógica para usar o valor correto (seja do campo ou recém-calculado)
+			// Esta lógica agora compara valores que foram tratados da mesma forma (arredondados),
+			// garantindo consistência total.
 			if (pmtFromInput === 0 || Math.abs(pmtCorreto - pmtFromInput) > 0.01) {
 				pmtParaTabela = pmtCorreto;
 			} else {
