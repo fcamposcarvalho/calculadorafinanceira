@@ -923,3 +923,85 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// --- LÓGICA PARA TOOLTIPS CUSTOMIZADAS EM DISPOSITIVOS MÓVEIS ---
+document.addEventListener('DOMContentLoaded', function() {
+    let tooltipElement;
+    let longPressTimer;
+    const longPressDuration = 500; // 500ms para ser considerado um toque longo
+
+    // Função para criar e mostrar a tooltip
+    function showTooltip(element) {
+        // Remove a tooltip antiga se existir
+        if (tooltipElement) {
+            tooltipElement.remove();
+        }
+
+        const message = element.getAttribute('title');
+        if (!message) return;
+
+        // Cria o elemento da tooltip
+        tooltipElement = document.createElement('div');
+        tooltipElement.className = 'custom-tooltip-popup';
+        tooltipElement.textContent = message;
+        document.body.appendChild(tooltipElement);
+
+        // Posiciona a tooltip
+        const rect = element.getBoundingClientRect();
+        tooltipElement.style.left = `${rect.left + rect.width / 2 - tooltipElement.offsetWidth / 2}px`;
+        tooltipElement.style.top = `${rect.top - tooltipElement.offsetHeight - 10}px`; // 10px acima do elemento
+
+        // Se sair da tela em cima, posiciona embaixo
+        if (tooltipElement.offsetTop < 0) {
+             tooltipElement.style.top = `${rect.bottom + 10}px`;
+        }
+        
+        // Exibe com uma pequena transição
+        setTimeout(() => tooltipElement.classList.add('visible'), 10);
+    }
+
+    // Função para esconder a tooltip
+    function hideTooltip() {
+        if (tooltipElement) {
+            tooltipElement.classList.remove('visible');
+            // Remove o elemento do DOM após a transição
+            setTimeout(() => {
+                if (tooltipElement) tooltipElement.remove();
+                tooltipElement = null;
+            }, 300);
+        }
+    }
+
+    // Adiciona os eventos para todos os elementos que têm um 'title'
+    document.querySelectorAll('[title]').forEach(element => {
+        // --- Eventos de Toque (para Celulares/Tablets) ---
+        element.addEventListener('touchstart', function(e) {
+            // Inicia o timer para o toque longo
+            longPressTimer = setTimeout(() => {
+                showTooltip(element);
+                // Esconde a tooltip após 3 segundos
+                setTimeout(hideTooltip, 3000);
+            }, longPressDuration);
+        }, { passive: true });
+
+        element.addEventListener('touchend', function() {
+            // Se o dedo for levantado antes do tempo, cancela o timer
+            clearTimeout(longPressTimer);
+        });
+
+        element.addEventListener('touchmove', function() {
+            // Se o dedo se mover, cancela o timer para não atrapalhar o scroll
+            clearTimeout(longPressTimer);
+        });
+    });
+
+    // Adiciona um evento para fechar a tooltip ao tocar em qualquer outro lugar
+    // (Útil para os ícones (?) que poderiam ter um clique para fixar a dica)
+    document.addEventListener('touchstart', function(e) {
+        if (tooltipElement && !tooltipElement.contains(e.target)) {
+            // Se a tooltip estiver visível e o toque for fora dela, esconde-a.
+            // (Esta parte pode ser expandida para a lógica de clique nos ícones (?))
+        }
+    }, { passive: true });
+
+});
