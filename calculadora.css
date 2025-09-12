@@ -861,7 +861,7 @@ input[type="text"].highlighted {
 .tooltip-trigger-icon {
     position: absolute; /* Tira o ícone do fluxo normal do layout */
     top: 50%;
-    right: 3px; /* Posiciona o ícone 10px para fora da borda direita do container */
+    right: 5px; /* Posiciona o ícone 10px para fora da borda direita do container */
     transform: translateY(-50%); /* Centraliza o ícone verticalmente de forma precisa */
 
     /* Estilos visuais que já tínhamos */
