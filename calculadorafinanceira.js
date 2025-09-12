@@ -397,39 +397,45 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
-    function showSacAmortizationTable() {
-        if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
-
-        if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (SAC)";
-
-        try {
-            hideError();
-            const n = parseInt(periodsInput.value) || 0;
-            const i = parseFinancialInput(rateInput.value) / 100;
-            const pv = parseFinancialInput(presentValueInput.value);
-
-            if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para o cálculo SAC.");
-            if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
-            if (i < 0) throw new Error("A taxa de juros não pode ser negativa.");
-
-            const amortizationData = calculateSacAmortizationTable(n, i, pv);
-            
-            if (amortizationData.length === 0) {
-                amortizationContent.innerHTML = '<div class="empty-amortization">Não foi possível gerar a tabela SAC com os valores fornecidos.</div>';
-            } else {
-                displayAmortizationData(amortizationData);
-            }
-            
-            if (amortizationModalContentEl) {
-                amortizationModalContentEl.style.position = '';
-                amortizationModalContentEl.style.left = '';
-                amortizationModalContentEl.style.top = '';
-            }
-            amortizationModal.style.display = "flex";
-        } catch (error) {
-            showError("Amortização (SAC): " + error.message);
-        }
-    }
+	function showSacAmortizationTable() {
+		if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
+	
+		const fv = parseFinancialInput(futureValueInput.value);
+		if (fv > 0) {
+			if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (SAC com Valor Residual)";
+		} else {
+			if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (SAC)";
+		}
+	
+		try {
+			hideError();
+			const n = parseInt(periodsInput.value) || 0;
+			const i = parseFinancialInput(rateInput.value) / 100;
+			const pv = parseFinancialInput(presentValueInput.value);
+			// A leitura do FV já foi feita acima para o título
+	
+			if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para o cálculo SAC.");
+			if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
+			if (i < 0) throw new Error("A taxa de juros não pode ser negativa.");
+	
+			const amortizationData = calculateSacAmortizationTable(n, i, pv, fv); 
+			
+			if (amortizationData.length === 0) {
+				amortizationContent.innerHTML = '<div class="empty-amortization">Não foi possível gerar a tabela SAC com os valores fornecidos.</div>';
+			} else {
+				displayAmortizationData(amortizationData);
+			}
+			
+			if (amortizationModalContentEl) {
+				amortizationModalContentEl.style.position = '';
+				amortizationModalContentEl.style.left = '';
+				amortizationModalContentEl.style.top = '';
+			}
+			amortizationModal.style.display = "flex";
+		} catch (error) { // <-- A CHAVE { FOI ADICIONADA AQUI
+			showError("Amortização (SAC): " + error.message);
+		}
+	}
     
     function displayAmortizationData(amortizationData) {
         const totalPrincipal = amortizationData.reduce((sum, row) => sum + row.principalPayment, 0);
@@ -494,50 +500,62 @@ document.addEventListener('DOMContentLoaded', function() {
         return table;
     }
 
-    function calculateSacAmortizationTable(n, i, pv) {
-        const table = [];
-        const principalAmount = Math.abs(pv);
-        if (n <= 0) return table;
-
-        const constantAmortization = parseFloat((principalAmount / n).toFixed(2));
-        
-        let currentBalance = principalAmount;
-        let cumulativeInterest = 0;
-        let cumulativePrincipal = 0;
-
-        for (let period = 1; period <= n; period++) {
-            const interestForPeriod = currentBalance * i;
-            let principalPaymentForPeriod;
-
-            if (period === n) {
-                principalPaymentForPeriod = currentBalance;
-            } else {
-                principalPaymentForPeriod = constantAmortization;
-            }
-            
-            const paymentForPeriod = principalPaymentForPeriod + interestForPeriod;
-            
-            cumulativeInterest += interestForPeriod;
-            cumulativePrincipal += principalPaymentForPeriod;
-            currentBalance -= principalPaymentForPeriod;
-            
-            if(period === n) {
-                currentBalance = 0;
-            }
-
-            table.push({
-                period: period,
-                payment: paymentForPeriod,
-                interestPayment: interestForPeriod,
-                cumulativeInterest: cumulativeInterest,
-                principalPayment: principalPaymentForPeriod,
-                cumulativePrincipal: cumulativePrincipal,
-                endingBalance: currentBalance
-            });
-        }
-        return table;
-    }
-    
+	// ALTERAÇÃO: Adiciona 'fv' como um parâmetro
+	function calculateSacAmortizationTable(n, i, pv, fv) { 
+		const table = [];
+		const principalAmount = Math.abs(pv);
+		if (n <= 0) return table;
+	
+		// LÓGICA PRINCIPAL: Decide qual cálculo de amortização usar
+		let amountToAmortize;
+		if (fv > 0 && fv < principalAmount) {
+			amountToAmortize = principalAmount - fv;
+		} else {
+			amountToAmortize = principalAmount;
+		}
+	
+		const constantAmortization = parseFloat((amountToAmortize / n).toFixed(2));
+		
+		let currentBalance = principalAmount;
+		let cumulativeInterest = 0;
+		let cumulativePrincipal = 0;
+	
+		for (let period = 1; period <= n; period++) {
+			const interestForPeriod = currentBalance * i;
+			let principalPaymentForPeriod;
+	
+			// Lógica de ajuste da última parcela para cravar o saldo final
+			if (period === n) {
+				// A última amortização é o que falta para o saldo chegar no FV desejado
+				principalPaymentForPeriod = currentBalance - fv; 
+			} else {
+				principalPaymentForPeriod = constantAmortization;
+			}
+			
+			const paymentForPeriod = principalPaymentForPeriod + interestForPeriod;
+			
+			cumulativeInterest += interestForPeriod;
+			cumulativePrincipal += principalPaymentForPeriod;
+			currentBalance -= principalPaymentForPeriod;
+			
+			// Proteção para evitar saldos negativos e garantir que o saldo final seja exatamente o FV
+			if(period === n) {
+				currentBalance = fv;
+			}
+	
+			table.push({
+				period: period,
+				payment: paymentForPeriod,
+				interestPayment: interestForPeriod,
+				cumulativeInterest: cumulativeInterest,
+				principalPayment: principalPaymentForPeriod,
+				cumulativePrincipal: cumulativePrincipal,
+				endingBalance: currentBalance
+			});
+		}
+		return table;
+	} 
+	
     function getLabelForField(field) {
         const labels = { periods: 'Períodos (n)', rate: 'Taxa (i)', payment: 'Pagamento (PMT)', presentValue: 'Valor Presente (PV)', futureValue: 'Valor Futuro (FV)'};
         return labels[field] || field;
