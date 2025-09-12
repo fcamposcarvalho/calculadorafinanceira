@@ -151,7 +151,9 @@ select {
 
 .button-group {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* ALTERAÇÃO: Torna a grade responsiva. Ela tentará criar colunas com no mínimo 130px. */
+    /* Se não couberem 3, ela se ajustará para 2 ou 1 automaticamente, evitando estouro. */
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 10px;
     margin-top: 35px;
 }
@@ -161,7 +163,7 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 16px; /* <-- Leve ajuste para mais conforto visual */
     font-weight: 600;
     transition: all 0.3s;
 }
@@ -852,25 +854,31 @@ input[type="text"].highlighted {
 /* --- Estilos para Botão com Ícone (ALINHAMENTO CENTRALIZADO) --- */
 
 /* ADICIONE esta nova regra */
-.btn-with-icon {
+/* --- Estilos para Botão com Ícone (ALINHAMENTO CENTRALIZADO) --- */
+
+/* Esta regra garante que TODOS os botões na grade se centralizem da mesma forma */
+.button-group > button {
     display: flex;
-    justify-content: center; /* Centraliza o conteúdo (texto + ícone) */
-    align-items: center;    /* Alinha verticalmente */
-    gap: 8px;               /* Espaço entre o texto e o ícone */
+    justify-content: center;
+    align-items: center;
 }
 
-/* SUBSTITUA a regra antiga por esta */
+/* Esta regra adiciona o espaçamento APENAS ao botão que tem um ícone */
+.btn-with-icon {
+    gap: 8px;
+}
+
+/* Estilo para o ícone '?' em si (sem alterações aqui) */
 .tooltip-trigger-icon {
-    /* Removemos position: absolute e as coordenadas */
     display: inline-block;
     background-color: var(--primary-color);
     color: white;
     font-weight: bold;
     font-family: 'Segoe UI', sans-serif;
     border-radius: 50%;
-    width: 22px;  /* Levemente menor para um melhor ajuste */
+    width: 22px;
     height: 22px;
-    line-height: 22px; /* Ajustado para a nova altura */
+    line-height: 22px;
     text-align: center;
     cursor: help;
     user-select: none;
