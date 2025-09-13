@@ -932,49 +932,66 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     let activeTooltip = null;
 
-    // Função para criar e mostrar a tooltip
+    // SUBSTITUA SUA FUNÇÃO 'showTooltip' POR ESTA VERSÃO COMPLETA
     function showTooltip(triggerElement) {
-        // Pega a mensagem do atributo data
         const message = triggerElement.getAttribute('data-tooltip-message');
         if (!message) return;
 
-        // Cria o elemento da tooltip
         const tooltipElement = document.createElement('div');
         tooltipElement.className = 'custom-tooltip-popup';
         tooltipElement.textContent = message;
         document.body.appendChild(tooltipElement);
 
-        // Posiciona a tooltip
         const rect = triggerElement.getBoundingClientRect();
-        tooltipElement.style.left = `${rect.left + rect.width / 2 - tooltipElement.offsetWidth / 2}px`;
-        tooltipElement.style.top = `${rect.top - tooltipElement.offsetHeight - 10}px`; // 10px acima
+        const screenPadding = 10; // Uma margem de segurança das bordas da tela
 
-        if (tooltipElement.offsetTop < 0) {
-            tooltipElement.style.top = `${rect.bottom + 10}px`; // Ou 10px abaixo se não couber
+        // --- LÓGICA DE POSICIONAMENTO INTELIGENTE ---
+
+        // 1. Posicionamento Vertical (Primeiro, para sabermos a altura)
+        let topPos = rect.top - tooltipElement.offsetHeight - 10; // Tenta posicionar 10px acima
+        if (topPos < screenPadding) {
+            topPos = rect.bottom + 10; // Se não couber, posiciona 10px abaixo
+        }
+        tooltipElement.style.top = `${topPos}px`;
+
+        // 2. Posicionamento Horizontal (com verificação de bordas)
+        let leftPos = rect.left + (rect.width / 2) - (tooltipElement.offsetWidth / 2); // Tenta centralizar
+        
+        // VERIFICA SE ESTÁ VAZANDO PELA ESQUERDA
+        if (leftPos < screenPadding) {
+            leftPos = screenPadding;
         }
         
-        // Exibe com transição
+        // VERIFICA SE ESTÁ VAZANDO PELA DIREITA
+        const rightEdge = leftPos + tooltipElement.offsetWidth;
+        if (rightEdge > window.innerWidth - screenPadding) {
+            leftPos = window.innerWidth - tooltipElement.offsetWidth - screenPadding;
+        }
+        
+        tooltipElement.style.left = `${leftPos}px`;
+        
+        // --------------------------------------------------
+        
         setTimeout(() => tooltipElement.classList.add('visible'), 10);
         
-        activeTooltip = tooltipElement; // Guarda a referência da tooltip ativa
+        activeTooltip = tooltipElement;
     }
 
-    // Função para esconder a tooltip ativa
+    // Função para esconder a tooltip ativa (NÃO PRECISA MUDAR)
     function hideTooltip() {
         if (activeTooltip) {
             activeTooltip.classList.remove('visible');
             setTimeout(() => {
                 if (activeTooltip) activeTooltip.remove();
                 activeTooltip = null;
-            }, 300); // Remove após a transição de fade-out
+            }, 300);
         }
     }
 
-    // Adiciona o evento de clique para todos os ícones '?'
+    // Lógica de cliques (NÃO PRECISA MUDAR)
     document.querySelectorAll('.tooltip-trigger-icon').forEach(icon => {
         icon.addEventListener('click', function(e) {
-            e.stopPropagation(); // Impede que o clique se propague para o document
-            // Se já houver uma tooltip, esconde. Senão, mostra.
+            e.stopPropagation();
             if (activeTooltip) {
                 hideTooltip();
             } else {
@@ -983,7 +1000,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Adiciona um evento para fechar a tooltip ao clicar em qualquer outro lugar da tela
     document.addEventListener('click', function() {
         if (activeTooltip) {
             hideTooltip();
