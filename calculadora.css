@@ -888,3 +888,8 @@ input[type="text"].highlighted {
 .tooltip-trigger-icon:hover {
     background-color: var(--primary-dark);
 }
+
+/* --- Estilo para destacar o label principal --- */
+.form-group .label-highlight {
+    font-weight: 700; /* Torna a fonte mais forte que o padrão 600 dos outros labels */
+}
