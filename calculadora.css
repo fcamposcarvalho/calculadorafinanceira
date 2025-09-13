@@ -893,3 +893,29 @@ input[type="text"].highlighted {
 .form-group .label-highlight {
     font-weight: 700; /* Torna a fonte mais forte que o padrão 600 dos outros labels */
 }
+
+/* --- Estilos para Tooltips Inseridas nos Botões RPN --- */
+.rpn-special-btn {
+    position: relative; /* Mantém a referência para o ícone */
+    
+    /* Estas 3 linhas garantem que o texto principal fique perfeitamente centralizado */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tooltip-icon-inset {
+    position: absolute; /* Posiciona o ícone como uma camada flutuante */
+    top: 4px;
+    right: 4px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+    font-size: 10px;
+    font-weight: normal;
+    opacity: 0.7;
+}
+
+.rpn-special-btn:hover .tooltip-icon-inset {
+    opacity: 1;
+}

@@ -193,11 +193,23 @@
                             <button class="calc-btn calc-btn-op" data-action="ln">ln</button>
                         </div>
 						<div class="calc-row rpn-only-row">
-							<button class="calc-btn" data-action="weightedAverage" title="Média Ponderada. Entrada: [valor] ENTER [peso] x̄w. Clique x↔y para ver a quantidade">x̄w</button>
-							<button class="calc-btn" data-action="dateDiff" title="Diferença de dias. [Primeira data] ENTER [Segunda data] ΔDYS. Use o formato: dd.mmyyyy">ΔDYS</button>
-							<button class="calc-btn" data-action="percentDiff" title="Variação%. Entrada: [valor antigo] ENTER [valor novo] Δ%">Δ%</button>
-							<button class="calc-btn" data-action="equivRate" title="Taxa Equivalente. Entrada: [i%] ENTER [n ou 1/n] tx eq">tx eq</button>
-						</div>
+							<button class="calc-btn rpn-special-btn" data-action="weightedAverage">
+								<span>x̄w</span>
+								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Média Ponderada. Entrada: [valor] ENTER [peso] x̄w. Clique x↔y para ver a quantidade">?</span>
+							</button>
+							<button class="calc-btn rpn-special-btn" data-action="dateDiff">
+								<span>ΔDYS</span>
+								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Diferença de dias. [Primeira data] ENTER [Segunda data] ΔDYS. Use o formato: dd.mmyyyy">?</span>
+							</button>
+							<button class="calc-btn rpn-special-btn" data-action="percentDiff">
+								<span>Δ%</span>
+								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Variação%. Entrada: [valor antigo] ENTER [valor novo] Δ%">?</span>
+							</button>
+							<button class="calc-btn rpn-special-btn" data-action="equivRate">
+								<span>tx eq</span>
+								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Taxa Equivalente. Entrada: [i%] ENTER [n ou 1/n] tx eq">?</span>
+							</button>
+						</div>						
 						<div class="calc-row">
                             <button class="calc-btn calc-btn-const" data-action="pi">π</button>
                             <button class="calc-btn calc-btn-const" data-action="euler">e</button>
