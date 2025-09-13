@@ -919,3 +919,11 @@ input[type="text"].highlighted {
 .rpn-special-btn:hover .tooltip-icon-inset {
     opacity: 1;
 }
+
+/* --- Estilo para Tabela de Amortização Responsiva --- */
+.amortization-table-container {
+    overflow-x: auto; /* A MÁGICA ACONTECE AQUI: Adiciona rolagem horizontal se necessário */
+    -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iPhones/iPads */
+    margin: 0 -20px; /* Compensa o padding do modal para a rolagem ir de ponta a ponta */
+    padding: 0 20px; /* Adiciona o padding de volta dentro do container */
+}

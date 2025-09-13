@@ -437,30 +437,34 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
     
-    function displayAmortizationData(amortizationData) {
-        const totalPrincipal = amortizationData.reduce((sum, row) => sum + row.principalPayment, 0);
-        const totalInterest = amortizationData.reduce((sum, row) => sum + row.interestPayment, 0);
-        const totalPayment = amortizationData.reduce((sum, row) => sum + row.payment, 0);
-        
-        let tableHTML = `
-            <div class="amortization-summary">
-                <p>Total de Pagamentos: ${formatCurrency(totalPayment)}</p>
-                <p>Total de Principal Amortizado: ${formatCurrency(totalPrincipal)}</p>
-                <p>Total de Juros Pagos: ${formatCurrency(totalInterest)}</p>
-            </div>
-            <table class="amortization-table">
-                <thead><tr><th>Período</th><th>Pagamento (PMT)</th><th>Juros</th><th>Juros Acum.</th><th>Amortização</th><th>Amort. Acum.</th><th>Saldo Devedor</th></tr></thead>
-                <tbody>`;
-        amortizationData.forEach(row => {
-            tableHTML += `<tr>
-                <td>${row.period}</td><td>${formatCurrency(row.payment)}</td><td>${formatCurrency(row.interestPayment)}</td>
-                <td>${formatCurrency(row.cumulativeInterest)}</td><td>${formatCurrency(row.principalPayment)}</td>
-                <td>${formatCurrency(row.cumulativePrincipal)}</td><td>${formatCurrency(row.endingBalance)}</td>
-            </tr>`;
-        });
-        tableHTML += `<tr><td><strong>Total</strong></td><td><strong>${formatCurrency(totalPayment)}</strong></td><td><strong>${formatCurrency(totalInterest)}</strong></td><td>-</td><td><strong>${formatCurrency(totalPrincipal)}</strong></td><td>-</td><td>-</td></tr></tbody></table>`;
-        amortizationContent.innerHTML = tableHTML;
-    }
+	function displayAmortizationData(amortizationData) {
+		const totalPrincipal = amortizationData.reduce((sum, row) => sum + row.principalPayment, 0);
+		const totalInterest = amortizationData.reduce((sum, row) => sum + row.interestPayment, 0);
+		const totalPayment = amortizationData.reduce((sum, row) => sum + row.payment, 0);
+		
+		let tableHTML = `
+			<div class="amortization-summary">
+				<p>Total de Pagamentos: ${formatCurrency(totalPayment)}</p>
+				<p>Total de Principal Amortizado: ${formatCurrency(totalPrincipal)}</p>
+				<p>Total de Juros Pagos: ${formatCurrency(totalInterest)}</p>
+			</div>
+			<!-- ADICIONADO: O container para a rolagem -->
+			<div class="amortization-table-container">
+				<table class="amortization-table">
+					<thead><tr><th>Período</th><th>Pagamento (PMT)</th><th>Juros</th><th>Juros Acum.</th><th>Amortização</th><th>Amort. Acum.</th><th>Saldo Devedor</th></tr></thead>
+					<tbody>`;
+		amortizationData.forEach(row => {
+			tableHTML += `<tr>
+				<td>${row.period}</td><td>${formatCurrency(row.payment)}</td><td>${formatCurrency(row.interestPayment)}</td>
+				<td>${formatCurrency(row.cumulativeInterest)}</td><td>${formatCurrency(row.principalPayment)}</td>
+				<td>${formatCurrency(row.cumulativePrincipal)}</td><td>${formatCurrency(row.endingBalance)}</td>
+			</tr>`;
+		});
+		tableHTML += `<tr><td><strong>Total</strong></td><td><strong>${formatCurrency(totalPayment)}</strong></td><td><strong>${formatCurrency(totalInterest)}</strong></td><td>-</td><td><strong>${formatCurrency(totalPrincipal)}</strong></td><td>-</td><td>-</td></tr></tbody>
+				</table>
+			</div> <!-- ADICIONADO: Fechamento do container -->`;
+		amortizationContent.innerHTML = tableHTML;
+	}
 
     function calculatePriceAmortizationTable(n, i, pmt, pv, fv) {
         let pvCorrigido = -Math.abs(pv); 
