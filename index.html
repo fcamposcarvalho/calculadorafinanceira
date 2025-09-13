@@ -239,14 +239,14 @@
                         <input type="text" inputmode="decimal" id="mirrInitialInvestment" value="-1000,00" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
                     <div class="form-group">
-                        <label for="mirrFinancingRate">Taxa de Financiamento (% por período):
+                        <label for="mirrFinancingRate">Taxa de Financiamento (%):
                             <!-- CORRIGIDO -->
                             <span class="tooltip-trigger-icon" data-tooltip-message="A taxa de juros (ex: 5 para 5%) por período na qual se assume que os fluxos de caixa negativos subsequentes (custos, após o FC0) são financiados. Esta taxa é usada para encontrar o valor presente deles no período 0. Se for 0%, eles são efetivamente somados sem desconto de juros. Garanta que o período (anual, mensal) corresponde aos seus períodos de fluxo de caixa.">?</span>
                         </label>
                         <input type="text" inputmode="decimal" id="mirrFinancingRate" value="5,0" title="Pressione F1 ou duplo clique para acessar a calculadora" enterkeyhint="numeric">
                     </div>
                     <div class="form-group">
-                        <label for="mirrReinvestmentRate">Taxa de Reinvestimento (% por período):
+                        <label for="mirrReinvestmentRate">Taxa de Reinvestimento (%):
                             <!-- CORRIGIDO -->
                             <span class="tooltip-trigger-icon" data-tooltip-message="A taxa de juros (ex: 7 para 7%) por período na qual se assume que os fluxos de caixa positivos (incluindo um FC0 positivo e entradas subsequentes) são reinvestidos. Esta taxa é usada para encontrar o valor futuro deles no final do último período de fluxo de caixa (período N). Se for 0%, eles são efetivamente somados sem juros compostos. Garanta que o período corresponde aos seus períodos de fluxo de caixa.">?</span>
                         </label>
