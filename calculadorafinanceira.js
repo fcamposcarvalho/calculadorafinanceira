@@ -360,18 +360,13 @@ document.addEventListener('DOMContentLoaded', function() {
 			const fv = parseFinancialInput(futureValueInput.value);
 			const pmtFromInput = parseFinancialInput(paymentInput.value);
 	
+			// REMOVIDO: A verificação "if (pv <= 0)" foi removida daqui.
 			if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
-			if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para a amortização.");
 			
-			// CORREÇÃO FINAL: O resultado do cálculo é imediatamente arredondado para 2 casas decimais,
-			// garantindo que o valor usado seja sempre idêntico ao que o botão "Calcular" exibiria.
-			// O parseFloat garante que o valor volte a ser um número após o toFixed (que retorna uma string).
 			const pmtCorreto = parseFloat(calculatePayment(n, i, pv, fv).toFixed(2));
 			
 			let pmtParaTabela;
 	
-			// Esta lógica agora compara valores que foram tratados da mesma forma (arredondados),
-			// garantindo consistência total.
 			if (pmtFromInput === 0 || Math.abs(pmtCorreto - pmtFromInput) > 0.01) {
 				pmtParaTabela = pmtCorreto;
 			} else {
@@ -401,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (!amortizationContent || !amortizationModal || !amortizationModalContentEl) return;
 	
 		const fv = parseFinancialInput(futureValueInput.value);
-		if (fv > 0) {
+		if (fv !== 0) { // Lida com FV positivo ou negativo
 			if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (SAC com Valor Residual)";
 		} else {
 			if (amortizationModalTitle) amortizationModalTitle.textContent = "Tabela de Amortização (SAC)";
@@ -414,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			const pv = parseFinancialInput(presentValueInput.value);
 			// A leitura do FV já foi feita acima para o título
 	
-			if (pv <= 0) throw new Error("O Valor Presente (PV) deve ser um número positivo para o cálculo SAC.");
+			// REMOVIDO: A verificação "if (pv <= 0)" foi removida daqui.
 			if (n <= 0) throw new Error("O número de períodos deve ser maior que zero.");
 			if (i < 0) throw new Error("A taxa de juros não pode ser negativa.");
 	
@@ -432,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				amortizationModalContentEl.style.top = '';
 			}
 			amortizationModal.style.display = "flex";
-		} catch (error) { // <-- A CHAVE { FOI ADICIONADA AQUI
+		} catch (error) {
 			showError("Amortização (SAC): " + error.message);
 		}
 	}
@@ -466,54 +461,69 @@ document.addEventListener('DOMContentLoaded', function() {
 		amortizationContent.innerHTML = tableHTML;
 	}
 
-    function calculatePriceAmortizationTable(n, i, pmt, pv, fv) {
-        let pvCorrigido = -Math.abs(pv); 
-        let pmtCalculado = pmt !== 0 ? -Math.abs(pmt) : 0;
-
-        if (pmtCalculado === 0 && pvCorrigido !== 0 && i >= 0) {
-             pmtCalculado = calculatePayment(n, i, pvCorrigido, fv);
-        }
-
-        const table = [];
-        let currentBalance = -pvCorrigido; 
-        let cumulativeInterest = 0;
-        let cumulativePrincipal = 0;
-
-        for (let period = 1; period <= n; period++) {
-            const interestForPeriod = currentBalance * i;
-            const principalPaymentPart = Math.abs(pmtCalculado) - interestForPeriod;
-            
-            currentBalance -= principalPaymentPart;
-            cumulativeInterest += interestForPeriod;
-            cumulativePrincipal += principalPaymentPart;
-
-            if (period === n) {
-                currentBalance = 0;
-            }
-
-            table.push({
-                period: period,
-                payment: Math.abs(pmtCalculado),
-                interestPayment: interestForPeriod,
-                cumulativeInterest: cumulativeInterest,
-                principalPayment: principalPaymentPart,
-                cumulativePrincipal: cumulativePrincipal,
-                endingBalance: currentBalance 
-            });
-        }
-        return table;
-    }
+	function calculatePriceAmortizationTable(n, i, pmt, pv, fv) {
+		const table = [];
+		// ALTERADO: Trabalha com os valores absolutos para a lógica da tabela.
+		let currentBalance = Math.abs(pv); 
+		const paymentAmount = Math.abs(pmt);
+		const futureValueAmount = Math.abs(fv);
+	
+		let cumulativeInterest = 0;
+		let cumulativePrincipal = 0;
+	
+		for (let period = 1; period <= n; period++) {
+			const interestForPeriod = currentBalance * i;
+			const principalPaymentPart = paymentAmount - interestForPeriod;
+			
+			currentBalance -= principalPaymentPart;
+			cumulativeInterest += interestForPeriod;
+			cumulativePrincipal += principalPaymentPart;
+	
+			// ALTERADO: Garante que o saldo final seja exatamente o FV desejado,
+			// lidando com arredondamentos e cenários de investimento.
+			if (period === n) {
+				// A última amortização é ajustada para que o saldo final bata com o FV.
+				const finalPrincipalPayment = cumulativePrincipal + (currentBalance - futureValueAmount);
+				currentBalance = futureValueAmount;
+				
+				table.push({
+					period: period,
+					payment: paymentAmount,
+					interestPayment: interestForPeriod,
+					cumulativeInterest: cumulativeInterest,
+					principalPayment: finalPrincipalPayment - cumulativePrincipal + principalPaymentPart, // Ajuste fino da última amortização
+					cumulativePrincipal: finalPrincipalPayment,
+					endingBalance: currentBalance 
+				});
+	
+			} else {
+				table.push({
+					period: period,
+					payment: paymentAmount,
+					interestPayment: interestForPeriod,
+					cumulativeInterest: cumulativeInterest,
+					principalPayment: principalPaymentPart,
+					cumulativePrincipal: cumulativePrincipal,
+					endingBalance: currentBalance 
+				});
+			}
+		}
+		return table;
+	}
 
 	// ALTERAÇÃO: Adiciona 'fv' como um parâmetro
 	function calculateSacAmortizationTable(n, i, pv, fv) { 
 		const table = [];
+		// ALTERADO: Trabalha sempre com valores absolutos para a lógica da tabela.
 		const principalAmount = Math.abs(pv);
+		const futureValueAmount = Math.abs(fv);
+	
 		if (n <= 0) return table;
 	
-		// LÓGICA PRINCIPAL: Decide qual cálculo de amortização usar
+		// A lógica agora usa os valores absolutos para definir o montante a ser amortizado.
 		let amountToAmortize;
-		if (fv > 0 && fv < principalAmount) {
-			amountToAmortize = principalAmount - fv;
+		if (futureValueAmount > 0 && futureValueAmount < principalAmount) {
+			amountToAmortize = principalAmount - futureValueAmount;
 		} else {
 			amountToAmortize = principalAmount;
 		}
@@ -528,10 +538,10 @@ document.addEventListener('DOMContentLoaded', function() {
 			const interestForPeriod = currentBalance * i;
 			let principalPaymentForPeriod;
 	
-			// Lógica de ajuste da última parcela para cravar o saldo final
+			// Lógica de ajuste da última parcela para cravar o saldo final.
 			if (period === n) {
-				// A última amortização é o que falta para o saldo chegar no FV desejado
-				principalPaymentForPeriod = currentBalance - fv; 
+				// A última amortização é o que falta para o saldo chegar no FV desejado.
+				principalPaymentForPeriod = currentBalance - futureValueAmount; 
 			} else {
 				principalPaymentForPeriod = constantAmortization;
 			}
@@ -542,9 +552,9 @@ document.addEventListener('DOMContentLoaded', function() {
 			cumulativePrincipal += principalPaymentForPeriod;
 			currentBalance -= principalPaymentForPeriod;
 			
-			// Proteção para evitar saldos negativos e garantir que o saldo final seja exatamente o FV
+			// Proteção para garantir que o saldo final seja exatamente o FV.
 			if(period === n) {
-				currentBalance = fv;
+				currentBalance = futureValueAmount;
 			}
 	
 			table.push({
@@ -558,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			});
 		}
 		return table;
-	} 
+	}
 	
     function getLabelForField(field) {
         const labels = { periods: 'Períodos (n)', rate: 'Taxa (i)', payment: 'Pagamento (PMT)', presentValue: 'Valor Presente (PV)', futureValue: 'Valor Futuro (FV)'};
