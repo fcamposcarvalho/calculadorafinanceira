@@ -433,9 +433,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
     
 	function displayAmortizationData(amortizationData) {
+		// CORREÇÃO APLICADA AQUI: Os totais agora são sempre a soma exata das colunas da tabela,
+		// refletindo o ajuste da última parcela e garantindo consistência total.
 		const totalPrincipal = amortizationData.reduce((sum, row) => sum + row.principalPayment, 0);
 		const totalInterest = amortizationData.reduce((sum, row) => sum + row.interestPayment, 0);
-		const totalPayment = amortizationData.reduce((sum, row) => sum + row.payment, 0);
+		const totalPayment = amortizationData.reduce((sum, row) => sum + row.payment, 0); // Esta é a linha crucial.
 		
 		let tableHTML = `
 			<div class="amortization-summary">
@@ -463,9 +465,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	function calculatePriceAmortizationTable(n, i, pmt, pv, fv) {
 		const table = [];
-		// ALTERADO: Trabalha com os valores absolutos para a lógica da tabela.
 		let currentBalance = Math.abs(pv); 
-		const paymentAmount = Math.abs(pmt);
+		const paymentAmount = Math.abs(pmt); // O PMT padrão, arredondado
 		const futureValueAmount = Math.abs(fv);
 	
 		let cumulativeInterest = 0;
@@ -473,61 +474,48 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 		for (let period = 1; period <= n; period++) {
 			const interestForPeriod = currentBalance * i;
-			const principalPaymentPart = paymentAmount - interestForPeriod;
+			let principalPaymentPart;
+			let currentPayment = paymentAmount; // Assume o pagamento padrão
+	
+			// LÓGICA CORRIGIDA: Ajusta a amortização E o pagamento da última parcela
+			if (period === n) {
+				principalPaymentPart = currentBalance - futureValueAmount;
+				currentPayment = principalPaymentPart + interestForPeriod; // Recalcula o último pagamento
+			} else {
+				principalPaymentPart = paymentAmount - interestForPeriod;
+			}
 			
 			currentBalance -= principalPaymentPart;
 			cumulativeInterest += interestForPeriod;
 			cumulativePrincipal += principalPaymentPart;
 	
-			// ALTERADO: Garante que o saldo final seja exatamente o FV desejado,
-			// lidando com arredondamentos e cenários de investimento.
+			// Garante que o saldo final seja cravado no valor futuro
 			if (period === n) {
-				// A última amortização é ajustada para que o saldo final bata com o FV.
-				const finalPrincipalPayment = cumulativePrincipal + (currentBalance - futureValueAmount);
 				currentBalance = futureValueAmount;
-				
-				table.push({
-					period: period,
-					payment: paymentAmount,
-					interestPayment: interestForPeriod,
-					cumulativeInterest: cumulativeInterest,
-					principalPayment: finalPrincipalPayment - cumulativePrincipal + principalPaymentPart, // Ajuste fino da última amortização
-					cumulativePrincipal: finalPrincipalPayment,
-					endingBalance: currentBalance 
-				});
-	
-			} else {
-				table.push({
-					period: period,
-					payment: paymentAmount,
-					interestPayment: interestForPeriod,
-					cumulativeInterest: cumulativeInterest,
-					principalPayment: principalPaymentPart,
-					cumulativePrincipal: cumulativePrincipal,
-					endingBalance: currentBalance 
-				});
 			}
+	
+			table.push({
+				period: period,
+				payment: currentPayment, // Insere o pagamento correto (potencialmente ajustado)
+				interestPayment: interestForPeriod,
+				cumulativeInterest: cumulativeInterest,
+				principalPayment: principalPaymentPart,
+				cumulativePrincipal: cumulativePrincipal,
+				endingBalance: currentBalance 
+			});
 		}
 		return table;
 	}
-
-	// ALTERAÇÃO: Adiciona 'fv' como um parâmetro
+	
 	function calculateSacAmortizationTable(n, i, pv, fv) { 
 		const table = [];
-		// ALTERADO: Trabalha sempre com valores absolutos para a lógica da tabela.
 		const principalAmount = Math.abs(pv);
 		const futureValueAmount = Math.abs(fv);
 	
 		if (n <= 0) return table;
 	
-		// A lógica agora usa os valores absolutos para definir o montante a ser amortizado.
-		let amountToAmortize;
-		if (futureValueAmount > 0 && futureValueAmount < principalAmount) {
-			amountToAmortize = principalAmount - futureValueAmount;
-		} else {
-			amountToAmortize = principalAmount;
-		}
-	
+		let amountToAmortize = principalAmount - futureValueAmount;
+		// Arredonda a amortização base para evitar propagação de erros
 		const constantAmortization = parseFloat((amountToAmortize / n).toFixed(2));
 		
 		let currentBalance = principalAmount;
@@ -536,23 +524,19 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 		for (let period = 1; period <= n; period++) {
 			const interestForPeriod = currentBalance * i;
-			let principalPaymentForPeriod;
+			let principalPaymentForPeriod = constantAmortization;
 	
-			// Lógica de ajuste da última parcela para cravar o saldo final.
+			// LÓGICA CORRIGIDA: Ajusta a amortização da última parcela
 			if (period === n) {
-				// A última amortização é o que falta para o saldo chegar no FV desejado.
 				principalPaymentForPeriod = currentBalance - futureValueAmount; 
-			} else {
-				principalPaymentForPeriod = constantAmortization;
 			}
 			
 			const paymentForPeriod = principalPaymentForPeriod + interestForPeriod;
 			
+			currentBalance -= principalPaymentForPeriod;
 			cumulativeInterest += interestForPeriod;
 			cumulativePrincipal += principalPaymentForPeriod;
-			currentBalance -= principalPaymentForPeriod;
 			
-			// Proteção para garantir que o saldo final seja exatamente o FV.
 			if(period === n) {
 				currentBalance = futureValueAmount;
 			}
@@ -568,9 +552,9 @@ document.addEventListener('DOMContentLoaded', function() {
 			});
 		}
 		return table;
-	}
+	}	
 	
-    function getLabelForField(field) {
+	function getLabelForField(field) {
         const labels = { periods: 'Períodos (n)', rate: 'Taxa (i)', payment: 'Pagamento (PMT)', presentValue: 'Valor Presente (PV)', futureValue: 'Valor Futuro (FV)'};
         return labels[field] || field;
     }
