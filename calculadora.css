@@ -41,7 +41,7 @@ header {
     padding: 20px 0;
     background-color: white;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     max-width: 550px;
     margin-left: auto;
     margin-right: auto;
@@ -56,7 +56,7 @@ h1 {
     background-color: white;
     border-radius: 10px;
     padding: 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     max-width: 550px;
     margin-left: auto;
     margin-right: auto;
@@ -75,8 +75,8 @@ h1 {
 .form-group label,
 .npv-form-container label,
 .mirr-form-container label {
-    display: flex; 
-    align-items: center; 
+    display: flex;
+    align-items: center;
     margin-bottom: 10px;
     font-weight: 600;
     color: var(--primary-dark);
@@ -113,18 +113,22 @@ h1 {
 .rate-button-group {
     display: flex;
     align-items: center;
-    gap: 5px; /* Espaçamento entre os botões */
-    margin-left: 10px; /* Margem do grupo todo */
+    gap: 5px;
+    /* Espaçamento entre os botões */
+    margin-left: 10px;
+    /* Margem do grupo todo */
 }
 
 /* Remove a margem individual dos botões quando estão dentro do grupo */
 .rate-button-group .btn-toggle {
     margin-left: 0;
 }
+
 /* --- FIM DOS NOVOS ESTILOS --- */
 
 
-input, select {
+input,
+select {
     width: 100%;
     padding: 14px;
     border: 1px solid var(--border-color);
@@ -133,7 +137,8 @@ input, select {
     transition: border-color 0.3s;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
@@ -163,7 +168,8 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px; /* <-- Leve ajuste para mais conforto visual */
+    font-size: 16px;
+    /* <-- Leve ajuste para mais conforto visual */
     font-weight: 600;
     transition: all 0.3s;
 }
@@ -172,6 +178,7 @@ button {
     background-color: var(--primary-color);
     color: white;
 }
+
 .btn-primary:hover {
     background-color: var(--primary-dark);
 }
@@ -181,6 +188,7 @@ button {
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
+
 .btn-secondary:hover {
     background-color: #e9ecef;
 }
@@ -190,6 +198,7 @@ button {
     color: var(--primary-dark);
     border: 1px solid #b4cad6;
 }
+
 .btn-info:hover {
     background-color: #b9d7e9;
     border-color: #a0c2d6;
@@ -200,6 +209,7 @@ button {
     color: #155724;
     border: 1px solid #badbcc;
 }
+
 .btn-tool:hover {
     background-color: var(--soft-green-hover);
     border-color: #a6c9b3;
@@ -210,6 +220,7 @@ button {
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+
 .btn-action:hover {
     background-color: var(--soft-orange-hover);
     border-color: #f1b0b7;
@@ -220,6 +231,7 @@ button {
     color: var(--text-color);
     border: 1px solid #ced4da;
 }
+
 .btn-log:hover {
     background-color: var(--soft-gray-hover);
     border-color: #adb5bd;
@@ -231,7 +243,7 @@ button {
     padding: 25px;
     border-radius: 10px;
     background-color: var(--light-gray);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
     display: none;
 }
@@ -275,7 +287,7 @@ button {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     align-items: flex-start;
     justify-content: center;
     overflow-y: auto;
@@ -283,16 +295,16 @@ button {
 
 .modal-content {
     background-color: white;
-    margin-top: 5vh; 
-    margin-bottom: 5vh; 
+    margin-top: 5vh;
+    margin-bottom: 5vh;
     padding: 20px;
     border-radius: 10px;
     width: 80%;
     max-width: 800px;
-    max-height: 90vh; 
-    overflow-y: auto; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    position: relative; 
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
 }
 
 
@@ -302,12 +314,12 @@ button {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    line-height: 1; 
-    padding: 0 5px; 
+    line-height: 1;
+    padding: 0 5px;
 }
 
 .close:hover,
-.close:focus { 
+.close:focus {
     color: var(--text-color);
     text-decoration: none;
 }
@@ -333,7 +345,8 @@ button {
     font-size: 18px;
 }
 
-.empty-history, .empty-amortization { 
+.empty-history,
+.empty-amortization {
     text-align: center;
     padding: 20px;
     color: #6c757d;
@@ -347,7 +360,7 @@ footer {
     padding: 10px 0;
     background-color: white;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     max-width: 550px;
     margin-left: auto;
     margin-right: auto;
@@ -360,7 +373,7 @@ footer {
     font-size: 14px;
 }
 
-.amortization-table th, 
+.amortization-table th,
 .amortization-table td {
     padding: 10px;
     text-align: right;
@@ -372,20 +385,20 @@ footer {
     color: var(--primary-dark);
     font-weight: 600;
     position: sticky;
-    top: 0; 
+    top: 0;
     z-index: 10;
 }
 
 .amortization-table tr:nth-child(even) {
-    background-color: rgba(0,0,0,0.02);
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
-.amortization-table tr:last-child td { 
+.amortization-table tr:last-child td {
     font-weight: bold;
     border-top: 2px solid var(--primary-color);
     background-color: var(--light-gray);
     position: sticky;
-    bottom: 0; 
+    bottom: 0;
     z-index: 5;
 }
 
@@ -402,13 +415,25 @@ footer {
     margin: 5px 0;
 }
 
+/* Aviso quando a tabela não usa exatamente o PMT ou o n digitados (mesmas cores do aviso da TIR) */
+.amortization-notice {
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 0.9em;
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 5px;
+}
+
 
 @media (max-width: 768px) {
     .container {
         padding: 15px;
     }
-    
-    header, footer {
+
+    header,
+    footer {
         max-width: 100%;
         padding-left: 15px;
         padding-right: 15px;
@@ -418,24 +443,25 @@ footer {
         padding: 20px;
         max-width: 100%;
     }
-    
+
     .button-group {
         grid-template-columns: 1fr;
     }
-    
+
     .modal-content {
         width: 95%;
     }
-    
+
     .amortization-table {
         font-size: 12px;
     }
-    
-    .amortization-table th, 
+
+    .amortization-table th,
     .amortization-table td {
         padding: 6px 4px;
     }
-     .amortization-summary {
+
+    .amortization-summary {
         font-size: 13px;
     }
 }
@@ -447,24 +473,27 @@ footer {
     gap: 25px;
     margin-top: 20px;
 }
+
 .result-column {
     flex: 1;
     min-width: 200px;
     text-align: center;
 }
+
 .result-row.three-columns .result-column {
-    flex-basis: 30%; 
-    min-width: 150px; 
+    flex-basis: 30%;
+    min-width: 150px;
 }
 
-@media (max-width: 600px) { 
+@media (max-width: 600px) {
     .result-row.three-columns {
         flex-direction: column;
         align-items: center;
     }
+
     .result-row.three-columns .result-column {
-        flex-basis: auto; 
-        width: 80%; 
+        flex-basis: auto;
+        width: 80%;
         min-width: 0;
         margin-bottom: 15px;
     }
@@ -473,24 +502,25 @@ footer {
 .custom-dropdown {
     position: relative;
     width: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .dropdown-button {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px; 
+    padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     cursor: pointer;
     background-color: white;
     transition: border-color 0.3s;
-    font-size: 18px; 
-    line-height: 1.5; 
+    font-size: 18px;
+    line-height: 1.5;
 }
 
-.dropdown-button:hover, .dropdown-button:focus {
+.dropdown-button:hover,
+.dropdown-button:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
@@ -498,57 +528,59 @@ footer {
 
 .dropdown-icon {
     margin-left: 8px;
-    color: var(--primary-color); 
-    font-size: 10px; 
-    transition: transform 0.2s ease-in-out; 
+    color: var(--primary-color);
+    font-size: 10px;
+    transition: transform 0.2s ease-in-out;
 }
-.dropdown-list.visible .dropdown-icon { 
+
+.dropdown-list.visible .dropdown-icon {
     transform: rotate(180deg);
 }
 
 
 .dropdown-list {
     position: absolute;
-    top: calc(100% + 2px); 
+    top: calc(100% + 2px);
     left: 0;
     width: 100%;
     background-color: white;
     border: 1px solid var(--border-color);
-    border-radius: 5px; 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 100; 
-    max-height: 250px; 
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    max-height: 250px;
     overflow-y: auto;
-    padding: 5px 0;  
-    display: none; 
+    padding: 5px 0;
+    display: none;
 }
-.dropdown-list.visible { 
+
+.dropdown-list.visible {
     display: block;
 }
 
 
 .dropdown-item {
-    padding: 10px 15px !important; 
+    padding: 10px 15px !important;
     cursor: pointer;
     transition: background-color 0.2s;
-    font-size: 16px; 
-    white-space: nowrap; 
+    font-size: 16px;
+    white-space: nowrap;
 }
 
 .dropdown-item:hover {
-    background-color: var(--light-gray); 
+    background-color: var(--light-gray);
 }
 
 .dropdown-item.selected {
-    background-color: var(--soft-blue); 
-    color: var(--primary-dark); 
-    font-weight: 600; 
+    background-color: var(--soft-blue);
+    color: var(--primary-dark);
+    font-weight: 600;
 }
 
 
-.calculator-modal { 
+.calculator-modal {
     max-width: 340px;
-    padding-top: 15px; 
+    padding-top: 15px;
 }
 
 #calculatorContent h2 {
@@ -560,14 +592,14 @@ footer {
 
 .calculator-modal .close {
     margin-right: 5px;
-    margin-top: -5px; 
+    margin-top: -5px;
 }
 
 .basic-calculator {
-    background-color: #f8f9fa; 
+    background-color: #f8f9fa;
     border-radius: 10px;
     padding: 15px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); 
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .tooltip {
@@ -589,13 +621,13 @@ footer {
     font-size: 13px;
     line-height: 1.5;
     white-space: normal;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     width: auto;
     min-width: 180px;
     max-width: 280px;
-    position: absolute; 
+    position: absolute;
     z-index: 101;
-    left: 50%; 
+    left: 50%;
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.3s, visibility 0.3s;
@@ -640,9 +672,9 @@ footer {
 }
 
 input[type="number"].highlighted,
-input[type="text"].highlighted { 
+input[type="text"].highlighted {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(58, 124, 165, 0.3); 
+    box-shadow: 0 0 0 3px rgba(58, 124, 165, 0.3);
 }
 
 .calc-display {
@@ -652,13 +684,13 @@ input[type="text"].highlighted {
 .calc-display input {
     width: 100%;
     padding: 15px;
-    font-size: 28px; 
+    font-size: 28px;
     text-align: right;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     background-color: white;
     color: var(--text-color);
-    font-family: 'Consolas', 'Menlo', 'Courier New', monospace; 
+    font-family: 'Consolas', 'Menlo', 'Courier New', monospace;
 }
 
 .calc-buttons {
@@ -673,20 +705,21 @@ input[type="text"].highlighted {
 }
 
 .calc-btn {
-    padding: 15px 0; 
+    padding: 15px 0;
     font-size: 18px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 600;
-    display: flex; 
+    display: flex;
     align-items: center;
     justify-content: center;
-    background-clip: padding-box; 
+    background-clip: padding-box;
 }
+
 .calc-btn:active {
-    transform: translateY(1px); 
+    transform: translateY(1px);
 }
 
 
@@ -695,22 +728,33 @@ input[type="text"].highlighted {
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
-.calc-btn-num:hover { background-color: #f1f3f5; }
 
-.calc-btn-op { 
+.calc-btn-num:hover {
+    background-color: #f1f3f5;
+}
+
+.calc-btn-op {
     background-color: var(--soft-gray);
     color: var(--text-color);
     border: 1px solid #ced4da;
 }
-.calc-btn-op:hover { background-color: var(--soft-gray-hover); }
 
-.calc-btn-clear, .calc-btn-backspace, .calc-btn-ce { 
+.calc-btn-op:hover {
+    background-color: var(--soft-gray-hover);
+}
+
+.calc-btn-clear,
+.calc-btn-backspace,
+.calc-btn-ce {
     background-color: var(--soft-orange);
-    color: #721c24; 
+    color: #721c24;
     font-weight: bold;
     border: 1px solid #f5c6cb;
 }
-.calc-btn-clear:hover, .calc-btn-backspace:hover, .calc-btn-ce:hover {
+
+.calc-btn-clear:hover,
+.calc-btn-backspace:hover,
+.calc-btn-ce:hover {
     background-color: var(--soft-orange-hover);
 }
 
@@ -719,26 +763,35 @@ input[type="text"].highlighted {
     color: white;
     border: 1px solid var(--primary-dark);
 }
-.calc-btn-equal:hover { background-color: var(--primary-dark); }
 
-.calc-btn-const { 
+.calc-btn-equal:hover {
+    background-color: var(--primary-dark);
+}
+
+.calc-btn-const {
     background-color: var(--soft-blue);
     color: var(--primary-dark);
     border: 1px solid #b4cad6;
 }
-.calc-btn-const:hover { background-color: #b9d7e9; }
+
+.calc-btn-const:hover {
+    background-color: #b9d7e9;
+}
 
 .calc-btn-apply {
-    background-color: var(--success-color); 
+    background-color: var(--success-color);
     color: white;
-    grid-column: span 4; 
+    grid-column: span 4;
     font-weight: bold;
     border: 1px solid #1e7e34;
 }
-.calc-btn-apply:hover { background-color: #1e7e34; } 
+
+.calc-btn-apply:hover {
+    background-color: #1e7e34;
+}
 
 #calculatorModal {
-    z-index: 1050;
+    z-index: 10005;
 }
 
 /* Adicione estas regras ao final do seu arquivo calculadora.css */
@@ -769,7 +822,7 @@ input[type="text"].highlighted {
 .calc-mode-btn.active {
     background-color: white;
     color: var(--primary-dark);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Estilos para o Visor RPN --- */
@@ -792,13 +845,15 @@ input[type="text"].highlighted {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    color: #6c757d; /* Cinza suave para registros T, Z, Y */
+    color: #6c757d;
+    /* Cinza suave para registros T, Z, Y */
     font-size: 16px;
     line-height: 1.4;
 }
 
 .rpn-stack-row.main {
-    color: var(--text-color); /* Cor principal para o registro X */
+    color: var(--text-color);
+    /* Cor principal para o registro X */
     font-size: 28px;
     font-weight: 600;
 }
@@ -814,36 +869,40 @@ input[type="text"].highlighted {
     font-size: 0.7em;
 }
 
-/* Esconder o visor ALG quando em modo RPN */
-.calculator-modal.rpn-mode #algDisplay {
+/* Esconder o visor ALG quando em modo RPN (a classe rpn-mode fica no #calculatorModal) */
+#calculatorModal.rpn-mode #algDisplay {
     display: none;
 }
 
 /* Mostrar o visor RPN quando em modo RPN */
-.calculator-modal.rpn-mode #rpnDisplay {
-    display: flex; /* Usamos flex por causa do flex-direction: column */
+#calculatorModal.rpn-mode #rpnDisplay {
+    display: flex;
+    /* Usamos flex por causa do flex-direction: column */
 }
 
 /* Esconder o visor RPN por padrão (quando não está em rpn-mode) */
-.calculator-modal:not(.rpn-mode) #rpnDisplay {
+#calculatorModal:not(.rpn-mode) #rpnDisplay {
     display: none;
 }
 
 /* --- Estilos para Tooltip Customizada Mobile --- */
 .custom-tooltip-popup {
-    position: fixed; /* Fica fixo na tela */
+    position: fixed;
+    /* Fica fixo na tela */
     background-color: #333;
     color: #fff;
     text-align: center;
     border-radius: 6px;
     padding: 10px 15px;
-    z-index: 2000; /* Garante que fique acima de tudo */
+    z-index: 2000;
+    /* Garante que fique acima de tudo */
     opacity: 0;
     transition: opacity 0.3s ease;
-    pointer-events: none; /* Não interfere com cliques */
+    pointer-events: none;
+    /* Não interfere com cliques */
     font-size: 14px;
     max-width: 80%;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .custom-tooltip-popup.visible {
@@ -857,7 +916,7 @@ input[type="text"].highlighted {
 /* --- Estilos para Botão com Ícone (ALINHAMENTO CENTRALIZADO) --- */
 
 /* Esta regra garante que TODOS os botões na grade se centralizem da mesma forma */
-.button-group > button {
+.button-group>button {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -891,13 +950,15 @@ input[type="text"].highlighted {
 
 /* --- Estilo para destacar o label principal --- */
 .form-group .label-highlight {
-    font-weight: 700; /* Torna a fonte mais forte que o padrão 600 dos outros labels */
+    font-weight: 700;
+    /* Torna a fonte mais forte que o padrão 600 dos outros labels */
 }
 
 /* --- Estilos para Tooltips Inseridas nos Botões RPN --- */
 .rpn-special-btn {
-    position: relative; /* Mantém a referência para o ícone */
-    
+    position: relative;
+    /* Mantém a referência para o ícone */
+
     /* Estas 3 linhas garantem que o texto principal fique perfeitamente centralizado */
     display: flex;
     justify-content: center;
@@ -905,7 +966,8 @@ input[type="text"].highlighted {
 }
 
 .tooltip-icon-inset {
-    position: absolute; /* Posiciona o ícone como uma camada flutuante */
+    position: absolute;
+    /* Posiciona o ícone como uma camada flutuante */
     top: 4px;
     right: 4px;
     width: 14px;
@@ -922,8 +984,12 @@ input[type="text"].highlighted {
 
 /* --- Estilo para Tabela de Amortização Responsiva --- */
 .amortization-table-container {
-    overflow-x: auto; /* A MÁGICA ACONTECE AQUI: Adiciona rolagem horizontal se necessário */
-    -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iPhones/iPads */
-    margin: 0 -20px; /* Compensa o padding do modal para a rolagem ir de ponta a ponta */
-    padding: 0 20px; /* Adiciona o padding de volta dentro do container */
+    overflow-x: auto;
+    /* A MÁGICA ACONTECE AQUI: Adiciona rolagem horizontal se necessário */
+    -webkit-overflow-scrolling: touch;
+    /* Melhora a experiência de rolagem em iPhones/iPads */
+    margin: 0 -20px;
+    /* Compensa o padding do modal para a rolagem ir de ponta a ponta */
+    padding: 0 20px;
+    /* Adiciona o padding de volta dentro do container */
 }
