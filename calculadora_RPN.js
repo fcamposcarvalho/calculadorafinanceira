@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (rateFieldIds.includes(activeInputField.id)) {
                     valueToApply = numericValue.toFixed(8).replace('.', ',');
                 } else if (activeInputField.id === 'periods') {
-                    valueToApply = Math.round(numericValue);
+                    valueToApply = numericValue.toFixed(8).replace('.', ',');
                 } else {
                     valueToApply = numericValue.toFixed(2).replace('.', ',');
                 }
@@ -579,7 +579,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
     window.handleNumericInputDblClick = function (event) {
-        event.preventDefault(); openCalculator(event.target);
+        const input = event.target;
+        if (input.tagName === 'INPUT' && input.type === 'number') {
+            const rect = input.getBoundingClientRect();
+            // Evita abrir a calculadora se o clique foi na área das setas (spinners), que ocupam cerca de 28px do lado direito.
+            if (rect.right - event.clientX < 28) {
+                return;
+            }
+        }
+        event.preventDefault();
+        openCalculator(input);
     };
     function setupNumericInputs() {
         const numericInputs = document.querySelectorAll('input[type="number"], input[type="text"][inputmode="decimal"]');
