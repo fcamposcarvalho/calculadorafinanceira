@@ -162,13 +162,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const quantityInput = row.querySelector('.mirr-cash-flow-quantity');
 
                     const amount = parseFinancialInput(amountInput.value);
-                    const quantity = parseInt(quantityInput.value, 10);
+                    const quantity = Number(quantityInput.value); // inteiro: parseInt lia "2.5" como 2 sem avisar
 
                     if (isNaN(amount)) {
                         throw new Error(`Valor inválido em uma das linhas de fluxo de caixa.`);
                     }
-                    if (isNaN(quantity) || quantity < 1) {
-                        throw new Error(`Quantidade inválida em uma das linhas de fluxo de caixa. A quantidade deve ser pelo menos 1.`);
+                    if (!Number.isInteger(quantity) || quantity < 1) {
+                        throw new Error(`Quantidade inválida em uma das linhas de fluxo de caixa: use um número inteiro, pelo menos 1.`);
                     }
 
                     for (let i = 0; i < quantity; i++) {

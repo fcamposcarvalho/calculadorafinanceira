@@ -170,6 +170,28 @@ document.addEventListener('DOMContentLoaded', function() {
         return derivative;
     }
 
+    // Procura um intervalo em que o VPL troca de sinal (de -99,99% a 10.000%) e fecha por bisseção.
+    // Com mais de uma TIR, fica a positiva mais próxima de zero (senão, a negativa mais próxima de zero).
+    function findIRRByBisection(cashFlows) {
+        const grid = [-0.9999, -0.999, -0.99, -0.95, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, -0.05, 0,
+                      0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1, 1.5, 2, 3, 5, 10, 20, 50, 100];
+        const brackets = [];
+        for (let k = 1; k < grid.length; k++) {
+            const a = grid[k - 1], b = grid[k], fa = calculateNPV(a, cashFlows), fb = calculateNPV(b, cashFlows);
+            if (!isFinite(fa) || !isFinite(fb)) continue;
+            if (fa === 0) return a;
+            if (fa * fb < 0) brackets.push([a, b]);
+        }
+        if (brackets.length === 0) return null;
+        let [lo, hi] = brackets.find(([a]) => a >= 0) || brackets[brackets.length - 1];
+        let flo = calculateNPV(lo, cashFlows);
+        for (let k = 0; k < 200; k++) {
+            const mid = (lo + hi) / 2, fm = calculateNPV(mid, cashFlows);
+            if ((fm > 0) === (flo > 0)) { lo = mid; flo = fm; } else { hi = mid; }
+        }
+        return (lo + hi) / 2;
+    }
+
     function findIRR(cashFlows, guess = 0.1, maxIterations = 100, tolerance = 1e-7) {
         let rate = guess;
 
@@ -181,9 +203,11 @@ document.addEventListener('DOMContentLoaded', function() {
              return { error: "A TIR não pode ser calculada se todos os fluxos de caixa tiverem o mesmo sinal." };
         }
         
+        // Mudanças de sinal entre fluxos não nulos (um zero no meio não separa as trocas: -100, 0, 230, 0, -132 tem duas)
+        const nonZeroFlows = cashFlows.filter(cf => cf !== 0);
         let signChanges = 0;
-        for (let i = 1; i < cashFlows.length; i++) {
-            if (Math.sign(cashFlows[i-1]) !== Math.sign(cashFlows[i]) && cashFlows[i-1] !== 0 && cashFlows[i] !== 0) {
+        for (let i = 1; i < nonZeroFlows.length; i++) {
+            if (Math.sign(nonZeroFlows[i-1]) !== Math.sign(nonZeroFlows[i])) {
                 signChanges++;
             }
         }
@@ -229,10 +253,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const amountInput = row.querySelector('.irr-cash-flow-amount');
                     const quantityInput = row.querySelector('.irr-cash-flow-quantity');
                     const amount = parseFinancialInput(amountInput.value);
-                    const quantity = parseInt(quantityInput.value, 10);
+                    const quantity = Number(quantityInput.value); // inteiro: parseInt lia "2.5" como 2 sem avisar
 
                     if (isNaN(amount)) throw new Error(`Valor inválido em uma das linhas de fluxo de caixa.`);
-                    if (isNaN(quantity) || quantity < 1) throw new Error(`Quantidade inválida. Deve ser pelo menos 1.`);
+                    if (!Number.isInteger(quantity) || quantity < 1) throw new Error(`Quantidade inválida: use um número inteiro, pelo menos 1.`);
                     
                     for (let i = 0; i < quantity; i++) {
                         expandedCashFlows.push(amount);
@@ -257,6 +281,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 for (const guess of guesses) {
                     result = findIRR(allCashFlows, guess);
                     if (result && typeof result.value === 'number') break;
+                }
+                // Plano B: com TIR muito negativa (aplicar 1.000 e receber 200 = -80%) o Newton passa de -100% e desiste
+                if (!(result && typeof result.value === 'number')) {
+                    const value = findIRRByBisection(allCashFlows);
+                    if (value !== null) result = { value, warning: result ? result.warning : null };
                 }
 
                 if (result && typeof result.value === 'number') {

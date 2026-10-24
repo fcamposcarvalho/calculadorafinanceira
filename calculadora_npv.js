@@ -206,6 +206,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isNaN(initialInvestment) || isNaN(discountRate)) {
                     throw new Error("Investimento Inicial e Taxa de Desconto devem ser números válidos.");
                 }
+                if (isNaN(financingRate) || isNaN(reinvestmentRate)) {
+                    throw new Error("Taxa de Financiamento e Taxa de Reinvestimento devem ser números válidos.");
+                }
                  if (discountRate <= -1 ) { 
                     throw new Error("A Taxa de Desconto deve ser maior que -100%.");
                 }
@@ -222,10 +225,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const amountInput = row.querySelector('.npv-cash-flow-amount');
                     const quantityInput = row.querySelector('.npv-cash-flow-quantity');
                     const amount = parseFinancialInput(amountInput.value);
-                    const quantity = parseInt(quantityInput.value, 10);
+                    const quantity = Number(quantityInput.value); // inteiro: parseInt lia "2.5" como 2 sem avisar
 
                     if (isNaN(amount)) throw new Error(`Valor inválido em uma das linhas de fluxo de caixa.`);
-                    if (isNaN(quantity) || quantity < 1) throw new Error(`Quantidade inválida. Deve ser pelo menos 1.`);
+                    if (!Number.isInteger(quantity) || quantity < 1) throw new Error(`Quantidade inválida: use um número inteiro, pelo menos 1.`);
                     for (let i = 0; i < quantity; i++) expandedCashFlows.push(amount);
                 });
                 
