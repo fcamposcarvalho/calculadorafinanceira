@@ -588,7 +588,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 		if (n <= 0) return table;
 	
-		let amountToAmortize = principalAmount - futureValueAmount;
+		// Em centavos antes de dividir: a subtração de valores grandes deixa um erro do tamanho deles, e (2.788.855,40 −
+		// 2.376.323,83) ÷ 2 = 206.265,785 saía 206.265,78 em vez de 206.265,79
+		let amountToAmortize = roundCents(principalAmount - futureValueAmount);
 		const constantAmortization = roundCents(amountToAmortize / n);
 		
 		let currentBalance = principalAmount;

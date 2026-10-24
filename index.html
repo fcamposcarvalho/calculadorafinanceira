@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Fluxo de Caixa</title>
-    <link rel="stylesheet" href="calculadora.css">
+    <link rel="stylesheet" href="calculadora.css?v=2">
     <link rel="stylesheet" href="calculadora_mirr.css">
     <link rel="stylesheet" href="calculadora_npv.css">
     <link rel="stylesheet" href="calculadora_irr.css">
@@ -141,7 +141,7 @@
                             <input type="text" id="calcDisplay" readonly>
                         </div>
 
-                        <div class="calc-display-rpn" id="rpnDisplay" style="display: none;">
+                        <div class="calc-display-rpn" id="rpnDisplay">
                             <div class="rpn-stack-row"><span class="rpn-reg">T:</span><span id="stackT">0</span></div>
                             <div class="rpn-stack-row"><span class="rpn-reg">Z:</span><span id="stackZ">0</span></div>
                             <div class="rpn-stack-row"><span class="rpn-reg">Y:</span><span id="stackY">0</span></div>
@@ -199,7 +199,7 @@
 							</button>
 							<button class="calc-btn rpn-special-btn" data-action="dateDiff">
 								<span>ΔDYS</span>
-								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Diferença de dias. [Primeira data] ENTER [Segunda data] ΔDYS. Use o formato: dd.mmyyyy">?</span>
+								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Diferença de dias corridos. [Primeira data] ENTER [Segunda data] ΔDYS. Use o formato: dd.mmyyyy. Negativo se a segunda data for anterior">?</span>
 							</button>
 							<button class="calc-btn rpn-special-btn" data-action="percentDiff">
 								<span>Δ%</span>
@@ -402,10 +402,10 @@ Deve ser maior que -100% (se não for zero).</span></span>
         </footer>
     </div>
 
-    <script src="calculadorafinanceira.js"></script>
-    <script src="calculadora.js"></script>
-    <script src="calculadora_mirr.js"></script>
-    <script src="calculadora_irr.js"></script>
-    <script src="calculadora_npv.js"></script>
+    <script src="calculadorafinanceira.js?v=2"></script>
+    <script src="calculadora.js?v=2"></script>
+    <script src="calculadora_mirr.js?v=2"></script>
+    <script src="calculadora_irr.js?v=2"></script>
+    <script src="calculadora_npv.js?v=2"></script>
 </body>
 </html>
