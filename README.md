@@ -22,6 +22,7 @@ Uma calculadora avançada de fluxo de caixa para realizar cálculos financeiros 
 - **TIRM (Taxa Interna de Retorno Modificada)** com taxas de financiamento e reinvestimento
 - **VPL (Valor Presente Líquido)** com taxas de desconto ajustáveis
 - **Modo RPN** (Notação Polonesa Reversa) para cálculos estilo HP
+- **Memórias STO e RCL** (0 a 9), **LSTx** e **%T** no modo RPN, com dica "?" nos botões e no visor
 - **Tabelas de amortização** com métodos PRICE e SAC
 
 ## Tecnologias Utilizadas

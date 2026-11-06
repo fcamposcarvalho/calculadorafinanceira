@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Fluxo de Caixa</title>
-    <link rel="stylesheet" href="calculadora.css?v=2">
+    <link rel="stylesheet" href="calculadora.css?v=4">
     <link rel="stylesheet" href="calculadora_mirr.css">
     <link rel="stylesheet" href="calculadora_npv.css">
     <link rel="stylesheet" href="calculadora_irr.css">
@@ -18,7 +18,7 @@
         </header>
 
         <main>
-            <div class="calculator">
+            <div class="calculator" id="pagina-calculadora">
                 <div class="error" id="errorMessage"></div>
 
                 <div class="form-group">
@@ -126,105 +126,149 @@
 		</div>
 
         <div id="calculatorModal" class="modal">
-            <div class="modal-content calculator-modal">
-                <span class="close" id="closeCalculatorModal">×</span>
-                <div id="calculatorContent">
-                    <h2>Calculadora</h2>
+        <div class="modal-content calculator-modal">
+            <span class="close" id="closeCalculatorModal">×</span>
+            <div id="calculatorContent">
+                <h2>Calculadora</h2>
 
-                    <div class="calc-mode-selector">
-                        <button id="algBtn" class="calc-mode-btn active" title="Modo: Algébrico">ALG</button>
-                        <button id="rpnBtn" class="calc-mode-btn" title="Modo: Notação Polonesa Reversa">RPN</button>
-                   </div>
+                <div class="calc-mode-selector">
+                    <button id="algBtn" class="calc-mode-btn active" title="Modo: Algébrico">ALG</button>
+                    <button id="rpnBtn" class="calc-mode-btn" title="Modo: Notação Polonesa Reversa">RPN</button>
+                </div>
 
-                    <div id="calcDisplayContainer">
-                        <div class="calc-display" id="algDisplay">
-                            <input type="text" id="calcDisplay" readonly>
-                        </div>
-
-                        <div class="calc-display-rpn" id="rpnDisplay">
-                            <div class="rpn-stack-row"><span class="rpn-reg">T:</span><span id="stackT">0</span></div>
-                            <div class="rpn-stack-row"><span class="rpn-reg">Z:</span><span id="stackZ">0</span></div>
-                            <div class="rpn-stack-row"><span class="rpn-reg">Y:</span><span id="stackY">0</span></div>
-                            <div class="rpn-stack-row main"><span class="rpn-reg">X:</span><span id="stackX">0</span></div>
-                        </div>
+                <div id="calcDisplayContainer">
+                    <div class="calc-display" id="algDisplay">
+                        <input type="text" id="calcDisplay" readonly>
                     </div>
 
-                    <div class="calc-buttons">
-                        <div class="calc-row">
-                            <button class="calc-btn calc-btn-clear" data-action="clear">C</button>
-                            <button class="calc-btn calc-btn-op" data-action="backspace">⌫</button>
-                            <button id="ceClxBtn" class="calc-btn calc-btn-op" data-action="clearEntry">CE</button>
-                            <button id="equalsEnterBtn" class="calc-btn calc-btn-equal" data-action="equals">=</button>
-                        </div>
-                        <div class="calc-row">
-                            <button id="parenSwapBtn" class="calc-btn calc-btn-op" data-action="openParenthesis">(</button>
-                            <button id="parenRollBtn" class="calc-btn calc-btn-op" data-action="closeParenthesis">)</button>
-                            <button class="calc-btn calc-btn-op" data-action="percent">%</button>
-                            <button class="calc-btn calc-btn-op" data-action="divide">÷</button>
-                        </div>
-                        <div class="calc-row">
-                            <button class="calc-btn calc-btn-num">7</button>
-                            <button class="calc-btn calc-btn-num">8</button>
-                            <button class="calc-btn calc-btn-num">9</button>
-                            <button class="calc-btn calc-btn-op" data-action="multiply">×</button>
-                        </div>
-                        <div class="calc-row">
-                            <button class="calc-btn calc-btn-num">4</button>
-                            <button class="calc-btn calc-btn-num">5</button>
-                            <button class="calc-btn calc-btn-num">6</button>
-                            <button class="calc-btn calc-btn-op" data-action="subtract">−</button>
-                        </div>
-                        <div class="calc-row">
-                            <button class="calc-btn calc-btn-num">1</button>
-                            <button class="calc-btn calc-btn-num">2</button>
-                            <button class="calc-btn calc-btn-num">3</button>
-                            <button class="calc-btn calc-btn-op" data-action="add">+</button>
-                        </div>
-                        <div class="calc-row">
-                            <button class="calc-btn calc-btn-num">0</button>
-                            <button class="calc-btn calc-btn-num" data-action="decimal">.</button>
-                            <button class="calc-btn calc-btn-op" data-action="inverse">1/x</button>
-                            <button class="calc-btn calc-btn-op" data-action="negate">±</button>
-                        </div>
-                        <div class="calc-row">
-                            <button class="calc-btn calc-btn-op" data-action="sqrt">√</button>
-                            <button class="calc-btn calc-btn-op" data-action="power">x^y</button>
-                            <button class="calc-btn calc-btn-op" data-action="log">log</button>
-                            <button class="calc-btn calc-btn-op" data-action="ln">ln</button>
-                        </div>
-						<div class="calc-row rpn-only-row">
-							<button class="calc-btn rpn-special-btn" data-action="weightedAverage">
-								<span>x̄w</span>
-								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Média Ponderada. Entrada: [valor] ENTER [peso] x̄w. Clique x↔y para ver a quantidade">?</span>
-							</button>
-							<button class="calc-btn rpn-special-btn" data-action="dateDiff">
-								<span>ΔDYS</span>
-								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Diferença de dias corridos. [Primeira data] ENTER [Segunda data] ΔDYS. Use o formato: dd.mmyyyy. Negativo se a segunda data for anterior">?</span>
-							</button>
-							<button class="calc-btn rpn-special-btn" data-action="percentDiff">
-								<span>Δ%</span>
-								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Variação%. Entrada: [valor antigo] ENTER [valor novo] Δ%">?</span>
-							</button>
-							<button class="calc-btn rpn-special-btn" data-action="equivRate">
-								<span>tx eq</span>
-								<span class="tooltip-trigger-icon tooltip-icon-inset" data-tooltip-message="Taxa Equivalente. Entrada: [i%] ENTER [n ou 1/n] tx eq">?</span>
-							</button>
-						</div>						
-						<div class="calc-row">
-                            <button class="calc-btn calc-btn-const" data-action="pi">π</button>
-                            <button class="calc-btn calc-btn-const" data-action="euler">e</button>
-                            <button class="calc-btn calc-btn-const" data-action="phi">φ</button>
-                            <button class="calc-btn calc-btn-op" data-action="exp">e^x</button>
-                        </div>
-                        <div class="calc-row">
-                            <button class="calc-btn calc-btn-apply" data-action="apply">Aplicar</button>
-                        </div>
+                    <div class="calc-display-rpn" id="rpnDisplay">
+                        <span class="tooltip-trigger-icon tooltip-icon-inset"
+                            data-tooltip-message="A calculadora RPN guarda os números em 4 registradores, empilhados como pratos:&#10;X: o número do visor. É onde você digita e onde aparece o resultado.&#10;Y: o número anterior. As contas vão na ordem Y e X (ex.: Y − X).&#10;Z e T: guardam números mais antigos, para as contas seguintes.&#10;ENTER guarda o número do X no Y. Depois de uma conta, os números descem sozinhos.&#10;Exemplo: 10 ENTER 2 − dá 8.">?</span>
+                        <div class="rpn-stack-row"><span class="rpn-reg">T:</span><span id="stackT">0</span></div>
+                        <div class="rpn-stack-row"><span class="rpn-reg">Z:</span><span id="stackZ">0</span></div>
+                        <div class="rpn-stack-row"><span class="rpn-reg">Y:</span><span id="stackY">0</span></div>
+                        <div class="rpn-stack-row main"><span class="rpn-reg">X:</span><span id="rpnPrefixo" class="rpn-prefixo"></span><span id="stackX">0</span></div>
+                    </div>
+                </div>
+
+                <div class="calc-buttons">
+                    <div class="calc-row">
+                        <button class="calc-btn calc-btn-clear rpn-special-btn" data-action="clear">
+                            <span>C</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset rpn-only-dica"
+                                data-tooltip-message="C apaga X, Y, Z, T, o LSTx e os acumulados da média ponderada (x̄w).&#10;Use para começar uma conta do zero. As memórias do STO continuam.">?</span>
+                        </button>
+                        <button class="calc-btn calc-btn-op" data-action="backspace">⌫</button>
+                        <button id="ceClxBtn" class="calc-btn calc-btn-op rpn-special-btn" data-action="clearEntry">
+                            <span id="ceClxLabel">CE</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset rpn-only-dica"
+                                data-tooltip-message="CLx apaga só o X; Y, Z e T ficam.&#10;Use para corrigir o número que acabou de digitar: o próximo número entra no lugar dele, sem empurrar a pilha.&#10;Exemplo: 5 ENTER 3 CLx 4 + dá 9.">?</span>
+                        </button>
+                        <button id="equalsEnterBtn" class="calc-btn calc-btn-equal" data-action="equals">=</button>
+                    </div>
+                    <div class="calc-row">
+                        <button id="parenSwapBtn" class="calc-btn calc-btn-op rpn-special-btn" data-action="openParenthesis">
+                            <span id="parenSwapLabel">(</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset rpn-only-dica"
+                                data-tooltip-message="x↔y troca os números de X e Y; Z e T não mudam.&#10;Use quando os números entraram na ordem errada, antes de uma subtração ou divisão.&#10;Exemplo: 2 ENTER 10 x↔y − dá 8.">?</span>
+                        </button>
+                        <button id="parenRollBtn" class="calc-btn calc-btn-op rpn-special-btn" data-action="closeParenthesis">
+                            <span id="parenRollLabel">)</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset rpn-only-dica"
+                                data-tooltip-message="R↓ gira a pilha para baixo: T vai para Z, Z para Y, Y para X, e o número do X vai para T.&#10;Nenhum número se perde; com 4 toques, todos voltam ao lugar. Serve para ver ou usar um número guardado na pilha sem apagar os outros.&#10;Exemplo: com T=1, Z=2, Y=3 e X=4, R↓ deixa T=4, Z=1, Y=2 e X=3.">?</span>
+                        </button>
+                        <button class="calc-btn calc-btn-op" data-action="percent">%</button>
+                        <button class="calc-btn calc-btn-op" data-action="divide">÷</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-btn-num">7</button>
+                        <button class="calc-btn calc-btn-num">8</button>
+                        <button class="calc-btn calc-btn-num">9</button>
+                        <button class="calc-btn calc-btn-op" data-action="multiply">×</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-btn-num">4</button>
+                        <button class="calc-btn calc-btn-num">5</button>
+                        <button class="calc-btn calc-btn-num">6</button>
+                        <button class="calc-btn calc-btn-op" data-action="subtract">−</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-btn-num">1</button>
+                        <button class="calc-btn calc-btn-num">2</button>
+                        <button class="calc-btn calc-btn-num">3</button>
+                        <button class="calc-btn calc-btn-op" data-action="add">+</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-btn-num">0</button>
+                        <button class="calc-btn calc-btn-num" data-action="decimal">.</button>
+                        <button class="calc-btn calc-btn-op" data-action="inverse">1/x</button>
+                        <button class="calc-btn calc-btn-op" data-action="negate">±</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-btn-op" data-action="sqrt">√</button>
+                        <button class="calc-btn calc-btn-op" data-action="power">x^y</button>
+                        <button class="calc-btn calc-btn-op" data-action="log">log</button>
+                        <button class="calc-btn calc-btn-op" data-action="ln">ln</button>
+                    </div>
+                    <div class="calc-row rpn-only-linha">
+                        <button class="calc-btn calc-btn-op rpn-special-btn" data-action="store">
+                            <span>STO</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset"
+                                data-tooltip-message="STO guarda o número do X numa memória; a pilha não muda.&#10;Depois do STO, aperte um número de 0 a 9, que é a memória. Qualquer outra tecla cancela.&#10;As memórias ficam até gravar por cima ou recarregar a página; o C não as apaga.&#10;Exemplo: 25 STO 1 guarda 25 na memória 1.">?</span>
+                        </button>
+                        <button class="calc-btn calc-btn-op rpn-special-btn" data-action="recall">
+                            <span>RCL</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset"
+                                data-tooltip-message="RCL traz de volta um número guardado com o STO.&#10;Depois do RCL, aperte o número da memória (0 a 9). O número entra no X, como se fosse digitado. Memória vazia devolve 0. Qualquer outra tecla cancela.&#10;Exemplo: 25 STO 1 C RCL 1 traz 25.">?</span>
+                        </button>
+                        <button class="calc-btn calc-btn-op rpn-special-btn" data-action="lastX">
+                            <span>LSTx</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset"
+                                data-tooltip-message="LSTx traz de volta o número que estava no X antes da última conta.&#10;Use para recuperar um número ou desfazer um erro, sem digitar de novo. O C apaga o LSTx.&#10;Exemplo: 10 ENTER 2 × dá 20; depois, LSTx ÷ desfaz a conta e volta para 10.">?</span>
+                        </button>
+                        <button class="calc-btn calc-btn-op rpn-special-btn" data-action="percentTotal">
+                            <span>%T</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset"
+                                data-tooltip-message="%T mostra quanto o X representa, em %, do total que está no Y. O total continua no Y, para a conta seguinte.&#10;Exemplo: 200 ENTER 50 %T dá 25, porque 50 é 25% de 200.">?</span>
+                        </button>
+                    </div>
+                    <div class="calc-row rpn-only-row">
+                        <button class="calc-btn rpn-special-btn" data-action="weightedAverage">
+                            <span>x̄w</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset"
+                                data-tooltip-message="Média Ponderada. Entrada: [valor] ENTER [peso] x̄w. Clique x↔y para ver a quantidade">?</span>
+                        </button>
+                        <button class="calc-btn rpn-special-btn" data-action="dateDiff">
+                            <span>ΔDYS</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset"
+                                data-tooltip-message="Diferença de dias corridos. [Primeira data] ENTER [Segunda data] ΔDYS. Use o formato: dd.mmyyyy. Negativo se a segunda data for anterior">?</span>
+                        </button>
+                        <button class="calc-btn rpn-special-btn" data-action="percentDiff">
+                            <span>Δ%</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset"
+                                data-tooltip-message="Variação%. Entrada: [valor antigo] ENTER [valor novo] Δ%">?</span>
+                        </button>
+                        <button class="calc-btn rpn-special-btn" data-action="equivRate">
+                            <span>tx eq</span>
+                            <span class="tooltip-trigger-icon tooltip-icon-inset"
+                                data-tooltip-message="Taxa Equivalente. Entrada: [i%] ENTER [n ou 1/n] tx eq">?</span>
+                        </button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-btn-const" data-action="pi">π</button>
+                        <button class="calc-btn calc-btn-const" data-action="phi">φ</button>
+                        <button class="calc-btn calc-btn-const" data-action="euler">e</button>
+                        <button class="calc-btn calc-btn-op" data-action="exp">e^x</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-btn-apply" data-action="apply">Aplicar</button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div id="mirrModal" class="modal">
+    <div id="mirrModal" class="modal">
             <div class="modal-content mirr-modal">
                 <span class="close" id="closeMirrModal">×</span>
                 <h2>Taxa Interna de Retorno Modificada (TIRM)</h2>
@@ -402,8 +446,8 @@ Deve ser maior que -100% (se não for zero).</span></span>
         </footer>
     </div>
 
-    <script src="calculadorafinanceira.js?v=2"></script>
-    <script src="calculadora.js?v=2"></script>
+    <script src="calculadorafinanceira.js?v=3"></script>
+    <script src="calculadora.js?v=4"></script>
     <script src="calculadora_mirr.js?v=2"></script>
     <script src="calculadora_irr.js?v=2"></script>
     <script src="calculadora_npv.js?v=2"></script>

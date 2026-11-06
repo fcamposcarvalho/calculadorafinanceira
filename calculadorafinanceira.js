@@ -1061,6 +1061,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // --- LÓGICA OTIMIZADA PARA TOOLTIPS CUSTOMIZADAS (BASEADA EM CLIQUE) ---
 document.addEventListener('DOMContentLoaded', function() {
     let activeTooltip = null;
+    let activeTrigger = null;
 
     // SUBSTITUA SUA FUNÇÃO 'showTooltip' POR ESTA VERSÃO COMPLETA
     function showTooltip(triggerElement) {
@@ -1105,28 +1106,25 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => tooltipElement.classList.add('visible'), 10);
         
         activeTooltip = tooltipElement;
+        activeTrigger = triggerElement;
     }
 
-    // Função para esconder a tooltip ativa (NÃO PRECISA MUDAR)
+    // Função para esconder a tooltip ativa: na hora, para o clique seguinte não se perder (06/11/2026)
     function hideTooltip() {
         if (activeTooltip) {
-            activeTooltip.classList.remove('visible');
-            setTimeout(() => {
-                if (activeTooltip) activeTooltip.remove();
-                activeTooltip = null;
-            }, 300);
+            activeTooltip.remove();
+            activeTooltip = null;
+            activeTrigger = null;
         }
     }
 
-    // Lógica de cliques (NÃO PRECISA MUDAR)
+    // Lógica de cliques: o mesmo "?" fecha a dica; outro "?" troca direto para a dele
     document.querySelectorAll('.tooltip-trigger-icon').forEach(icon => {
         icon.addEventListener('click', function(e) {
             e.stopPropagation();
-            if (activeTooltip) {
-                hideTooltip();
-            } else {
-                showTooltip(icon);
-            }
+            const mesmaDica = activeTrigger === icon;
+            hideTooltip();
+            if (!mesmaDica) showTooltip(icon);
         });
     });
 

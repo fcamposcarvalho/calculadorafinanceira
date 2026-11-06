@@ -848,9 +848,9 @@ input[type="text"].highlighted {
     text-align: center;
     border-radius: 6px;
     padding: 10px 15px;
-    z-index: 2000; /* Garante que fique acima de tudo */
+    z-index: 10060; /* Garante que fique acima de tudo, inclusive dos modais */
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.1s ease;
     pointer-events: none; /* Não interfere com cliques */
     font-size: 14px;
     max-width: 80%;
@@ -937,4 +937,247 @@ input[type="text"].highlighted {
     -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iPhones/iPads */
     margin: 0 -20px; /* Compensa o padding do modal para a rolagem ir de ponta a ponta */
     padding: 0 20px; /* Adiciona o padding de volta dentro do container */
+}
+
+
+/* --- Calculadoras compactas (06/11/2026, pedido do usuário): form e fonte menores, com a HP 12c cabendo inteira na tela sem rolagem.
+   Só nas telas das calculadoras: as regras gerais de input e button deste arquivo valem para o portal inteiro. --- */
+header {
+    max-width: 480px;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+}
+
+header h1 {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+header p {
+    font-size: 13px;
+}
+
+footer {
+    max-width: 480px;
+}
+
+#pagina-calculadora {
+    max-width: 480px;
+    padding: 16px 18px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) .form-group {
+    margin-bottom: 10px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) .form-group label,
+#npvModal .npv-form-container label,
+#mirrModal .mirr-form-container label {
+    margin-bottom: 3px;
+    font-size: 14px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) :is(input, select) {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) button {
+    padding: 7px 4px;
+    font-size: 13px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) .btn-toggle {
+    padding: 7px 10px;
+}
+
+:is(#irrModal, #mirrModal, #npvModal) h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+:is(#irrModal, #mirrModal, #npvModal) h3 {
+    font-size: 14px;
+    margin: 8px 0 4px;
+}
+
+#pagina-calculadora .dropdown-button {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+#pagina-calculadora .dropdown-item {
+    padding: 6px 10px !important;
+    font-size: 13px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) .button-group {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 6px;
+    margin-top: 14px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) .result-container {
+    margin-top: 14px;
+    padding: 10px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) .result-title {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+:is(#pagina-calculadora, #irrModal, #mirrModal, #npvModal) .result-value {
+    font-size: 15px;
+    white-space: nowrap;
+}
+
+#pagina-calculadora .result-row {
+    gap: 10px;
+    margin-top: 0;
+}
+
+#pagina-calculadora .result-row.three-columns .result-column {
+    min-width: max-content;
+}
+
+#pagina-calculadora .btn-with-icon {
+    gap: 4px;
+}
+
+#pagina-calculadora .tooltip-trigger-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    font-size: 11px;
+}
+
+/* Calculadora Financeira um pouco mais alta (06/11/2026, pedido do usuário): mesma largura e mesma fonte */
+#pagina-calculadora {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#pagina-calculadora .form-group {
+    margin-bottom: 12px;
+}
+
+#pagina-calculadora .form-group label {
+    margin-bottom: 4px;
+}
+
+#pagina-calculadora :is(input, select),
+#pagina-calculadora .dropdown-button {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+#pagina-calculadora button,
+#pagina-calculadora .btn-toggle {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+
+#pagina-calculadora .button-group {
+    gap: 7px;
+    margin-top: 16px;
+}
+
+.calculator-modal {
+    max-width: 320px;
+    padding: 12px 16px;
+}
+
+#calculatorContent h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.calculator-modal .close {
+    font-size: 22px;
+    margin-top: -2px;
+}
+
+.calc-mode-selector {
+    margin-bottom: 8px;
+    padding: 3px;
+}
+
+.calc-mode-btn {
+    padding: 4px 8px;
+    font-size: 13px;
+}
+
+#calcDisplayContainer,
+.calc-display {
+    margin-bottom: 8px;
+}
+
+.calc-display input {
+    padding: 8px 10px;
+    font-size: 21px;
+}
+
+.calc-display-rpn {
+    position: relative;
+    padding: 6px 24px 6px 12px;
+}
+
+.calc-display-rpn .tooltip-icon-inset {
+    top: 4px;
+    right: 4px;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+    font-size: 10px;
+    opacity: 1;
+}
+
+/* "?" de botão que muda de função: só no modo RPN (no ALG, o R↓ é o fecha parêntese) */
+#calculatorModal:not(.rpn-mode) .rpn-only-dica,
+#calculatorModal:not(.rpn-mode) .rpn-only-linha {
+    display: none;
+}
+
+/* "STO _" ou "RCL _" no visor, esperando o número da memória */
+.rpn-prefixo {
+    color: var(--primary-color);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Dica com mais de uma linha (registradores X, Y, Z e T): as quebras do texto valem */
+.custom-tooltip-popup {
+    max-width: min(80vw, 460px);
+    text-align: left;
+    white-space: pre-line;
+}
+
+.rpn-stack-row {
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.rpn-stack-row.main {
+    font-size: 21px;
+}
+
+.calc-buttons,
+.calc-row {
+    grid-gap: 5px;
+}
+
+.calc-btn {
+    padding: 6px 0;
+    font-size: 15px;
+}
+
+.tooltip-icon-inset {
+    top: 1px;
+    right: 1px;
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+    font-size: 9px;
 }
